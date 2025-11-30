@@ -33,6 +33,19 @@ Then open `index.html` from this repo or host it anywhere you like. The page wil
 talk to `http://<server-ip>:8000/api/contacts` to load and save contacts in
 `data/web_contacts.json` on the server.
 
+> The API uses [openpyxl](https://openpyxl.readthedocs.io/) for Excel import/export.
+> Install it with `pip install openpyxl` in the same environment where you run
+> `app.py`.
+
+#### Importing/exporting contacts in Excel
+
+- **Export**: Click **Export to Excel** in the web UI or GET `/api/contacts/export`
+  to download `contacts.xlsx`.
+- **Import**: Click **Import from Excel** in the web UI and select an `.xlsx` file,
+  or POST an Excel file to `/api/contacts/import` to replace the stored contacts.
+  The sheet must include these headers in the first row: `id`, `name`, `notes`,
+  `joinedCommunity`, `tookChallenge`, `submittedPaid`, `customer`, `dateAdded`.
+
 ### Downloading the app to your laptop
 
 If you want to run the tracker locally, either:
