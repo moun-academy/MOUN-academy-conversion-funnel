@@ -208,6 +208,24 @@
             font-size: 0.85em;
             margin-left: 10px;
         }
+
+        .form-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+            padding: 10px 16px;
+            font-size: 0.95em;
+            border-radius: 8px;
+            margin-left: 10px;
+        }
         
         @media (max-width: 768px) {
             .dashboard {
@@ -253,6 +271,10 @@
             
             <div class="card">
                 <h2>➕ Add New Contact</h2>
+                <div class="form-status">
+                    <span id="editingStatus">Adding new contact</span>
+                    <button type="button" id="cancelEdit" class="btn-secondary" style="display: none;">Cancel Edit</button>
+                </div>
                 <form id="contactForm">
                     <div class="form-group">
                         <label for="name">Name *</label>
@@ -302,14 +324,40 @@
     <script>
         // Load contacts from localStorage
         let contacts = JSON.parse(localStorage.getItem('speakerGymContacts')) || [];
-        
+        let editingContactId = null;
+
+        const contactForm = document.getElementById('contactForm');
+        const submitButton = contactForm.querySelector('button[type="submit"]');
+        const cancelEditButton = document.getElementById('cancelEdit');
+        const editingStatus = document.getElementById('editingStatus');
+
         // Update display on load
         updateDisplay();
-        
+
         // Form submission
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
+        contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
+            if (editingContactId) {
+                const contactIndex = contacts.findIndex(c => c.id === editingContactId);
+                if (contactIndex !== -1) {
+                    contacts[contactIndex] = {
+                        ...contacts[contactIndex],
+                        name: document.getElementById('name').value,
+                        notes: document.getElementById('notes').value,
+                        joinedCommunity: document.getElementById('joinedCommunity').checked,
+                        tookChallenge: document.getElementById('tookChallenge').checked,
+                        submittedPaid: document.getElementById('submittedPaid').checked
+                    };
+
+                    saveContacts();
+                    updateDisplay();
+                    resetForm();
+                    alert('Contact updated successfully! ✏️');
+                }
+                return;
+            }
+
             const contact = {
                 id: Date.now(),
                 name: document.getElementById('name').value,
@@ -320,25 +368,59 @@
                 submittedPaid: document.getElementById('submittedPaid').checked,
                 dateAdded: new Date().toISOString()
             };
-            
+
             contacts.push(contact);
             saveContacts();
             updateDisplay();
-            
+
             // Reset form
-            this.reset();
+            resetForm();
             alert('Contact added successfully! ✅');
         });
+
+        cancelEditButton.addEventListener('click', resetForm);
         
         function saveContacts() {
             localStorage.setItem('speakerGymContacts', JSON.stringify(contacts));
         }
-        
+
+        function resetForm() {
+            contactForm.reset();
+            editingContactId = null;
+            submitButton.textContent = 'Add Contact';
+            editingStatus.textContent = 'Adding new contact';
+            cancelEditButton.style.display = 'none';
+            document.getElementById('joined').checked = true;
+            document.getElementById('joinedCommunity').checked = false;
+            document.getElementById('tookChallenge').checked = false;
+            document.getElementById('submittedPaid').checked = false;
+        }
+
+        function startEditContact(id) {
+            const contact = contacts.find(c => c.id === id);
+            if (!contact) return;
+
+            editingContactId = id;
+            document.getElementById('name').value = contact.name;
+            document.getElementById('notes').value = contact.notes || '';
+            document.getElementById('joinedCommunity').checked = !!contact.joinedCommunity;
+            document.getElementById('tookChallenge').checked = !!contact.tookChallenge;
+            document.getElementById('submittedPaid').checked = !!contact.submittedPaid;
+
+            submitButton.textContent = 'Update Contact';
+            editingStatus.textContent = `Editing ${contact.name}`;
+            cancelEditButton.style.display = 'inline-block';
+            document.getElementById('name').focus();
+        }
+
         function deleteContact(id) {
             if (confirm('Are you sure you want to delete this contact?')) {
                 contacts = contacts.filter(c => c.id !== id);
                 saveContacts();
                 updateDisplay();
+                if (editingContactId === id) {
+                    resetForm();
+                }
             }
         }
         
@@ -376,7 +458,7 @@
                 contactsList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No contacts yet. Add your first contact above!</p>';
             } else {
                 contactsList.innerHTML = contacts.map(contact => `
-                    <div class="contact-item">
+                    <div class="contact-item" onclick="startEditContact(${contact.id})">
                         <div class="contact-info">
                             <h3>${contact.name}</h3>
                             <p>${contact.notes || 'No notes'}</p>
@@ -386,7 +468,7 @@
                                 ${contact.submittedPaid ? '<span class="stage-badge">Paid Program</span>' : ''}
                             </div>
                         </div>
-                        <button class="btn-delete" onclick="deleteContact(${contact.id})">Delete</button>
+                        <button class="btn-delete" onclick="event.stopPropagation(); deleteContact(${contact.id})">Delete</button>
                     </div>
                 `).join('');
             }
