@@ -8,6 +8,7 @@ and show summary counts for each funnel stage.
 from __future__ import annotations
 
 import argparse
+import http.server
 import json
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +17,7 @@ from typing import Any, Dict, List, Optional
 
 DATA_DIR = Path("data")
 DATA_FILE = DATA_DIR / "funnel.json"
+WEB_DATA_FILE = DATA_DIR / "web_contacts.json"
 
 
 def _ensure_store() -> None:
@@ -24,6 +26,12 @@ def _ensure_store() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     if not DATA_FILE.exists():
         DATA_FILE.write_text(json.dumps({"contacts": []}, indent=2))
+
+
+def _ensure_web_store() -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    if not WEB_DATA_FILE.exists():
+        WEB_DATA_FILE.write_text(json.dumps({"contacts": []}, indent=2))
 
 
 def _load_data() -> Dict[str, Any]:
@@ -38,12 +46,188 @@ def _save_data(data: Dict[str, Any]) -> None:
         json.dump(data, f, indent=2)
 
 
+def _load_web_data() -> Dict[str, Any]:
+    _ensure_web_store()
+    with WEB_DATA_FILE.open() as f:
+        return json.load(f)
+
+
+def _save_web_data(data: Dict[str, Any]) -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    with WEB_DATA_FILE.open("w") as f:
+        json.dump(data, f, indent=2)
+
+
 def _find_contact(data: Dict[str, Any], name: str) -> Optional[Dict[str, Any]]:
     name_lower = name.strip().lower()
     for contact in data.get("contacts", []):
         if contact["name"].strip().lower() == name_lower:
             return contact
     return None
+
+
+class ContactsRequestHandler(http.server.BaseHTTPRequestHandler):
+    """Minimal JSON API for persisting web UI contacts to disk."""
+
+    server_version = "FunnelTracker/1.0"
+
+    def _set_common_headers(self, status: int = 200) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
+    def log_message(self, format: str, *args: Any) -> None:  # pragma: no cover - keep server quiet
+        return
+
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        self._set_common_headers()
+
+    def do_GET(self) -> None:  # noqa: N802
+        if self.path.startswith("/api/contacts"):
+            self._handle_get_contacts()
+            return
+
+        self._set_common_headers(404)
+        self.wfile.write(json.dumps({"error": "Not found"}).encode())
+
+    def do_POST(self) -> None:  # noqa: N802
+        if self.path == "/api/contacts":
+            self._handle_create_contact()
+            return
+
+        self._set_common_headers(404)
+        self.wfile.write(json.dumps({"error": "Not found"}).encode())
+
+    def do_PUT(self) -> None:  # noqa: N802
+        if self.path.startswith("/api/contacts/"):
+            self._handle_update_contact()
+            return
+
+        self._set_common_headers(404)
+        self.wfile.write(json.dumps({"error": "Not found"}).encode())
+
+    def do_DELETE(self) -> None:  # noqa: N802
+        if self.path.startswith("/api/contacts/"):
+            self._handle_delete_contact()
+            return
+
+        self._set_common_headers(404)
+        self.wfile.write(json.dumps({"error": "Not found"}).encode())
+
+    def _read_json(self) -> Dict[str, Any]:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length == 0:
+            return {}
+        raw_body = self.rfile.read(length)
+        try:
+            return json.loads(raw_body)
+        except json.JSONDecodeError:
+            return {}
+
+    def _handle_get_contacts(self) -> None:
+        data = _load_web_data()
+        contacts = data.get("contacts", [])
+
+        if self.path != "/api/contacts":
+            contact_id = self.path.rsplit("/", 1)[-1]
+            try:
+                contact_id_int = int(contact_id)
+            except ValueError:
+                self._set_common_headers(400)
+                self.wfile.write(json.dumps({"error": "Invalid contact id"}).encode())
+                return
+
+            match = next((c for c in contacts if c.get("id") == contact_id_int), None)
+            if not match:
+                self._set_common_headers(404)
+                self.wfile.write(json.dumps({"error": "Contact not found"}).encode())
+                return
+
+            self._set_common_headers(200)
+            self.wfile.write(json.dumps(match).encode())
+            return
+
+        self._set_common_headers(200)
+        self.wfile.write(json.dumps(contacts).encode())
+
+    def _handle_create_contact(self) -> None:
+        payload = self._read_json()
+        name = (payload.get("name") or "").strip()
+        if not name:
+            self._set_common_headers(400)
+            self.wfile.write(json.dumps({"error": "Name is required"}).encode())
+            return
+
+        data = _load_web_data()
+        contacts = data.setdefault("contacts", [])
+        new_contact = {
+            "id": int(datetime.utcnow().timestamp() * 1000),
+            "name": name,
+            "notes": payload.get("notes") or "",
+            "joinedCommunity": bool(payload.get("joinedCommunity")),
+            "tookChallenge": bool(payload.get("tookChallenge")),
+            "submittedPaid": bool(payload.get("submittedPaid")),
+            "customer": bool(payload.get("customer")),
+            "dateAdded": datetime.utcnow().isoformat() + "Z",
+        }
+
+        contacts.append(new_contact)
+        _save_web_data(data)
+
+        self._set_common_headers(201)
+        self.wfile.write(json.dumps(new_contact).encode())
+
+    def _handle_update_contact(self) -> None:
+        contact_id = self.path.rsplit("/", 1)[-1]
+        try:
+            contact_id_int = int(contact_id)
+        except ValueError:
+            self._set_common_headers(400)
+            self.wfile.write(json.dumps({"error": "Invalid contact id"}).encode())
+            return
+
+        payload = self._read_json()
+        data = _load_web_data()
+        contacts = data.get("contacts", [])
+
+        for contact in contacts:
+            if contact.get("id") == contact_id_int:
+                for key in ["name", "notes", "joinedCommunity", "tookChallenge", "submittedPaid", "customer"]:
+                    if key in payload:
+                        contact[key] = payload[key]
+                _save_web_data(data)
+                self._set_common_headers(200)
+                self.wfile.write(json.dumps(contact).encode())
+                return
+
+        self._set_common_headers(404)
+        self.wfile.write(json.dumps({"error": "Contact not found"}).encode())
+
+    def _handle_delete_contact(self) -> None:
+        contact_id = self.path.rsplit("/", 1)[-1]
+        try:
+            contact_id_int = int(contact_id)
+        except ValueError:
+            self._set_common_headers(400)
+            self.wfile.write(json.dumps({"error": "Invalid contact id"}).encode())
+            return
+
+        data = _load_web_data()
+        contacts = data.get("contacts", [])
+        new_contacts = [c for c in contacts if c.get("id") != contact_id_int]
+
+        if len(new_contacts) == len(contacts):
+            self._set_common_headers(404)
+            self.wfile.write(json.dumps({"error": "Contact not found"}).encode())
+            return
+
+        data["contacts"] = new_contacts
+        _save_web_data(data)
+        self._set_common_headers(204)
+        self.wfile.write(b"")
 
 
 def add_contact(args: argparse.Namespace) -> None:
@@ -137,6 +321,25 @@ def reset_store(_: argparse.Namespace) -> None:
     print("Data store reset. All contacts removed.")
 
 
+def serve_api(args: argparse.Namespace) -> None:
+    """Run a small JSON API so the web UI persists to disk/server."""
+
+    _ensure_web_store()
+
+    address = ("", args.port)
+    httpd = http.server.ThreadingHTTPServer(address, ContactsRequestHandler)
+
+    print(f"Serving contact API on http://0.0.0.0:{args.port}")
+    print("Use Ctrl+C to stop the server.")
+
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down server...")
+    finally:
+        httpd.server_close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Track your speaker gym funnel")
     subparsers = parser.add_subparsers(dest="command")
@@ -192,6 +395,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     reset_parser = subparsers.add_parser("reset", help="Remove all contacts")
     reset_parser.set_defaults(func=reset_store)
+
+    serve_parser = subparsers.add_parser(
+        "serve", help="Run a JSON API for the web UI so contacts persist across devices"
+    )
+    serve_parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port to bind the web contact API (default: 8000)",
+    )
+    serve_parser.set_defaults(func=serve_api)
 
     return parser
 
