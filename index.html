@@ -461,17 +461,17 @@
             document.getElementById('count-paid').textContent = stats.paid;
             document.getElementById('count-customers').textContent = stats.customers;
             
-            // Update percentages
-            if (stats.contacted > 0) {
-                document.getElementById('percent-joined').textContent = 
-                    Math.round((stats.joined / stats.contacted) * 100) + '%';
-                document.getElementById('percent-challenge').textContent =
-                    Math.round((stats.challenge / stats.contacted) * 100) + '%';
-                document.getElementById('percent-paid').textContent =
-                    Math.round((stats.paid / stats.contacted) * 100) + '%';
-                document.getElementById('percent-customers').textContent =
-                    Math.round((stats.customers / stats.contacted) * 100) + '%';
-            }
+            // Update stage-to-stage percentages
+            const toPercent = (numerator, denominator) => {
+                if (!denominator) return '0%';
+                return Math.round((numerator / denominator) * 100) + '%';
+            };
+
+            document.getElementById('percent-contacted').textContent = '100%';
+            document.getElementById('percent-joined').textContent = toPercent(stats.joined, stats.contacted);
+            document.getElementById('percent-challenge').textContent = toPercent(stats.challenge, stats.joined);
+            document.getElementById('percent-paid').textContent = toPercent(stats.paid, stats.challenge);
+            document.getElementById('percent-customers').textContent = toPercent(stats.customers, stats.paid);
             
             // Update total count
             document.getElementById('totalContacts').textContent = contacts.length;

@@ -20,6 +20,15 @@ JSON file and helps you keep counts of how many people:
 
 The app will create `data/funnel.json` automatically on first run.
 
+### Downloading the app to your laptop
+
+If you want to run the tracker locally, either:
+
+- Click the green **Code** button on GitHub and choose **Download ZIP**, then unzip the folder anywhere on your machine, or
+- Clone it via Git: `git clone https://github.com/<your-org>/MOUN-academy-conversion-funnel.git`
+
+After downloading, you can open `index.html` directly in your browser for the local UI, or run the CLI with `python app.py` from the project folder.
+
 ## Commands
 
 ### Add a contact
