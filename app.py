@@ -9,14 +9,12 @@ from __future__ import annotations
 
 import argparse
 import http.server
+import importlib
 import json
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
-from openpyxl import Workbook, load_workbook
-
 
 DATA_DIR = Path("data")
 DATA_FILE = DATA_DIR / "funnel.json"
@@ -59,6 +57,17 @@ def _save_web_data(data: Dict[str, Any]) -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     with WEB_DATA_FILE.open("w") as f:
         json.dump(data, f, indent=2)
+
+
+def _require_openpyxl():
+    if importlib.util.find_spec("openpyxl") is None:
+        raise RuntimeError(
+            "The openpyxl package is required for Excel import/export. "
+            "Install it with `pip install openpyxl`."
+        )
+
+    module = importlib.import_module("openpyxl")
+    return module.Workbook, module.load_workbook
 
 
 def _find_contact(data: Dict[str, Any], name: str) -> Optional[Dict[str, Any]]:
@@ -163,6 +172,13 @@ class ContactsRequestHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(contacts).encode())
 
     def _handle_export_contacts(self) -> None:
+        try:
+            Workbook, _ = _require_openpyxl()
+        except RuntimeError as exc:
+            self._set_common_headers(500)
+            self.wfile.write(json.dumps({"error": str(exc)}).encode())
+            return
+
         data = _load_web_data()
         contacts = data.get("contacts", [])
 
@@ -241,6 +257,13 @@ class ContactsRequestHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(new_contact).encode())
 
     def _handle_import_contacts(self) -> None:
+        try:
+            _, load_workbook = _require_openpyxl()
+        except RuntimeError as exc:
+            self._set_common_headers(500)
+            self.wfile.write(json.dumps({"error": str(exc)}).encode())
+            return
+
         length = int(self.headers.get("Content-Length", "0"))
         if length == 0:
             self._set_common_headers(400)
