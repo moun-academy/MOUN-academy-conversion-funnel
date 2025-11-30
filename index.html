@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speaker Gym Funnel Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .funnel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .funnel-stage {
+            position: relative;
+            padding: 20px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .funnel-stage:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .funnel-stage .count {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .funnel-stage .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .funnel-stage .percentage {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .contacts-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .contact-item {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+        
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+        
+        .contact-info h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .contact-info p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .contact-stages {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .stage-badge {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.75em;
+        }
+        
+        .btn-delete {
+            background: #e74c3c;
+            padding: 5px 10px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Speaker Gym Funnel Tracker</h1>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2>📊 Conversion Funnel</h2>
+                <div class="funnel" id="funnel">
+                    <div class="funnel-stage">
+                        <span class="count" id="count-contacted">0</span>
+                        <span class="label">Contacted</span>
+                        <span class="percentage" id="percent-contacted">100%</span>
+                    </div>
+                    <div class="funnel-stage">
+                        <span class="count" id="count-joined">0</span>
+                        <span class="label">Joined Community</span>
+                        <span class="percentage" id="percent-joined">0%</span>
+                    </div>
+                    <div class="funnel-stage">
+                        <span class="count" id="count-challenge">0</span>
+                        <span class="label">Took 7-Day Challenge</span>
+                        <span class="percentage" id="percent-challenge">0%</span>
+                    </div>
+                    <div class="funnel-stage">
+                        <span class="count" id="count-paid">0</span>
+                        <span class="label">Submitted for 90-Day Program</span>
+                        <span class="percentage" id="percent-paid">0%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>➕ Add New Contact</h2>
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" required placeholder="John Doe">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" placeholder="How did you meet? What's their interest?"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Progress Stages:</label>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="joined" checked disabled>
+                                <span>Contacted (default)</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" id="joinedCommunity">
+                                <span>Joined Community</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" id="tookChallenge">
+                                <span>Took 7-Day Challenge</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" id="submittedPaid">
+                                <span>Submitted for 90-Day Program</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit">Add Contact</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>👥 All Contacts (<span id="totalContacts">0</span>)</h2>
+            <div class="contacts-list" id="contactsList">
+                <p style="text-align: center; color: #999; padding: 20px;">No contacts yet. Add your first contact above!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load contacts from localStorage
+        let contacts = JSON.parse(localStorage.getItem('speakerGymContacts')) || [];
+        
+        // Update display on load
+        updateDisplay();
+        
+        // Form submission
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const contact = {
+                id: Date.now(),
+                name: document.getElementById('name').value,
+                notes: document.getElementById('notes').value,
+                contacted: true,
+                joinedCommunity: document.getElementById('joinedCommunity').checked,
+                tookChallenge: document.getElementById('tookChallenge').checked,
+                submittedPaid: document.getElementById('submittedPaid').checked,
+                dateAdded: new Date().toISOString()
+            };
+            
+            contacts.push(contact);
+            saveContacts();
+            updateDisplay();
+            
+            // Reset form
+            this.reset();
+            alert('Contact added successfully! ✅');
+        });
+        
+        function saveContacts() {
+            localStorage.setItem('speakerGymContacts', JSON.stringify(contacts));
+        }
+        
+        function deleteContact(id) {
+            if (confirm('Are you sure you want to delete this contact?')) {
+                contacts = contacts.filter(c => c.id !== id);
+                saveContacts();
+                updateDisplay();
+            }
+        }
+        
+        function updateDisplay() {
+            // Calculate funnel stats
+            const stats = {
+                contacted: contacts.length,
+                joined: contacts.filter(c => c.joinedCommunity).length,
+                challenge: contacts.filter(c => c.tookChallenge).length,
+                paid: contacts.filter(c => c.submittedPaid).length
+            };
+            
+            // Update funnel counts
+            document.getElementById('count-contacted').textContent = stats.contacted;
+            document.getElementById('count-joined').textContent = stats.joined;
+            document.getElementById('count-challenge').textContent = stats.challenge;
+            document.getElementById('count-paid').textContent = stats.paid;
+            
+            // Update percentages
+            if (stats.contacted > 0) {
+                document.getElementById('percent-joined').textContent = 
+                    Math.round((stats.joined / stats.contacted) * 100) + '%';
+                document.getElementById('percent-challenge').textContent = 
+                    Math.round((stats.challenge / stats.contacted) * 100) + '%';
+                document.getElementById('percent-paid').textContent = 
+                    Math.round((stats.paid / stats.contacted) * 100) + '%';
+            }
+            
+            // Update total count
+            document.getElementById('totalContacts').textContent = contacts.length;
+            
+            // Update contacts list
+            const contactsList = document.getElementById('contactsList');
+            if (contacts.length === 0) {
+                contactsList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No contacts yet. Add your first contact above!</p>';
+            } else {
+                contactsList.innerHTML = contacts.map(contact => `
+                    <div class="contact-item">
+                        <div class="contact-info">
+                            <h3>${contact.name}</h3>
+                            <p>${contact.notes || 'No notes'}</p>
+                            <div class="contact-stages" style="margin-top: 8px;">
+                                ${contact.joinedCommunity ? '<span class="stage-badge">Joined</span>' : ''}
+                                ${contact.tookChallenge ? '<span class="stage-badge">Challenge</span>' : ''}
+                                ${contact.submittedPaid ? '<span class="stage-badge">Paid Program</span>' : ''}
+                            </div>
+                        </div>
+                        <button class="btn-delete" onclick="deleteContact(${contact.id})">Delete</button>
+                    </div>
+                `).join('');
+            }
+        }
+    </script>
+</body>
+</html>
