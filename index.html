@@ -209,6 +209,13 @@
             margin-left: 10px;
         }
 
+        .btn-edit {
+            background: #3498db;
+            padding: 5px 10px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
         .form-status {
             display: flex;
             align-items: center;
@@ -266,6 +273,11 @@
                         <span class="label">Submitted for 90-Day Program</span>
                         <span class="percentage" id="percent-paid">0%</span>
                     </div>
+                    <div class="funnel-stage">
+                        <span class="count" id="count-customers">0</span>
+                        <span class="label">Customers (Paid 90-Day Program)</span>
+                        <span class="percentage" id="percent-customers">0%</span>
+                    </div>
                 </div>
             </div>
             
@@ -304,6 +316,10 @@
                             <label>
                                 <input type="checkbox" id="submittedPaid">
                                 <span>Submitted for 90-Day Program</span>
+                            </label>
+                            <label>
+                                <input type="checkbox" id="customer">
+                                <span>Customers (Paid 90-Day Program)</span>
                             </label>
                         </div>
                     </div>
@@ -347,7 +363,8 @@
                         notes: document.getElementById('notes').value,
                         joinedCommunity: document.getElementById('joinedCommunity').checked,
                         tookChallenge: document.getElementById('tookChallenge').checked,
-                        submittedPaid: document.getElementById('submittedPaid').checked
+                        submittedPaid: document.getElementById('submittedPaid').checked,
+                        customer: document.getElementById('customer').checked
                     };
 
                     saveContacts();
@@ -366,6 +383,7 @@
                 joinedCommunity: document.getElementById('joinedCommunity').checked,
                 tookChallenge: document.getElementById('tookChallenge').checked,
                 submittedPaid: document.getElementById('submittedPaid').checked,
+                customer: document.getElementById('customer').checked,
                 dateAdded: new Date().toISOString()
             };
 
@@ -394,6 +412,7 @@
             document.getElementById('joinedCommunity').checked = false;
             document.getElementById('tookChallenge').checked = false;
             document.getElementById('submittedPaid').checked = false;
+            document.getElementById('customer').checked = false;
         }
 
         function startEditContact(id) {
@@ -406,6 +425,7 @@
             document.getElementById('joinedCommunity').checked = !!contact.joinedCommunity;
             document.getElementById('tookChallenge').checked = !!contact.tookChallenge;
             document.getElementById('submittedPaid').checked = !!contact.submittedPaid;
+            document.getElementById('customer').checked = !!contact.customer;
 
             submitButton.textContent = 'Update Contact';
             editingStatus.textContent = `Editing ${contact.name}`;
@@ -430,7 +450,8 @@
                 contacted: contacts.length,
                 joined: contacts.filter(c => c.joinedCommunity).length,
                 challenge: contacts.filter(c => c.tookChallenge).length,
-                paid: contacts.filter(c => c.submittedPaid).length
+                paid: contacts.filter(c => c.submittedPaid).length,
+                customers: contacts.filter(c => c.customer).length
             };
             
             // Update funnel counts
@@ -438,15 +459,18 @@
             document.getElementById('count-joined').textContent = stats.joined;
             document.getElementById('count-challenge').textContent = stats.challenge;
             document.getElementById('count-paid').textContent = stats.paid;
+            document.getElementById('count-customers').textContent = stats.customers;
             
             // Update percentages
             if (stats.contacted > 0) {
                 document.getElementById('percent-joined').textContent = 
                     Math.round((stats.joined / stats.contacted) * 100) + '%';
-                document.getElementById('percent-challenge').textContent = 
+                document.getElementById('percent-challenge').textContent =
                     Math.round((stats.challenge / stats.contacted) * 100) + '%';
-                document.getElementById('percent-paid').textContent = 
+                document.getElementById('percent-paid').textContent =
                     Math.round((stats.paid / stats.contacted) * 100) + '%';
+                document.getElementById('percent-customers').textContent =
+                    Math.round((stats.customers / stats.contacted) * 100) + '%';
             }
             
             // Update total count
@@ -466,9 +490,13 @@
                                 ${contact.joinedCommunity ? '<span class="stage-badge">Joined</span>' : ''}
                                 ${contact.tookChallenge ? '<span class="stage-badge">Challenge</span>' : ''}
                                 ${contact.submittedPaid ? '<span class="stage-badge">Paid Program</span>' : ''}
+                                ${contact.customer ? '<span class="stage-badge">Customer</span>' : ''}
                             </div>
                         </div>
-                        <button class="btn-delete" onclick="event.stopPropagation(); deleteContact(${contact.id})">Delete</button>
+                        <div>
+                            <button class="btn-edit" onclick="event.stopPropagation(); startEditContact(${contact.id})">Edit</button>
+                            <button class="btn-delete" onclick="event.stopPropagation(); deleteContact(${contact.id})">Delete</button>
+                        </div>
                     </div>
                 `).join('');
             }
