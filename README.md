@@ -20,6 +20,19 @@ JSON file and helps you keep counts of how many people:
 
 The app will create `data/funnel.json` automatically on first run.
 
+### Running the web API for persistent contacts
+
+If you want the browser UI (`index.html`) to persist contacts across browser sessions
+and devices, run the bundled API server:
+
+```bash
+python app.py serve --port 8000
+```
+
+Then open `index.html` from this repo or host it anywhere you like. The page will
+talk to `http://<server-ip>:8000/api/contacts` to load and save contacts in
+`data/web_contacts.json` on the server.
+
 ### Downloading the app to your laptop
 
 If you want to run the tracker locally, either:

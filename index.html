@@ -338,8 +338,10 @@
     </div>
 
     <script>
-        // Load contacts from localStorage
-        let contacts = JSON.parse(localStorage.getItem('speakerGymContacts')) || [];
+        const API_BASE = window.location.origin.startsWith('file') ? 'http://localhost:8000' : window.location.origin;
+        const CONTACTS_API = `${API_BASE}/api/contacts`;
+
+        let contacts = [];
         let editingContactId = null;
 
         const contactForm = document.getElementById('contactForm');
@@ -347,59 +349,107 @@
         const cancelEditButton = document.getElementById('cancelEdit');
         const editingStatus = document.getElementById('editingStatus');
 
-        // Update display on load
-        updateDisplay();
+        loadContacts();
 
-        // Form submission
-        contactForm.addEventListener('submit', function(e) {
+        contactForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            if (editingContactId) {
-                const contactIndex = contacts.findIndex(c => c.id === editingContactId);
-                if (contactIndex !== -1) {
-                    contacts[contactIndex] = {
-                        ...contacts[contactIndex],
-                        name: document.getElementById('name').value,
-                        notes: document.getElementById('notes').value,
-                        joinedCommunity: document.getElementById('joinedCommunity').checked,
-                        tookChallenge: document.getElementById('tookChallenge').checked,
-                        submittedPaid: document.getElementById('submittedPaid').checked,
-                        customer: document.getElementById('customer').checked
-                    };
-
-                    saveContacts();
-                    updateDisplay();
-                    resetForm();
-                    alert('Contact updated successfully! ✏️');
-                }
-                return;
-            }
-
-            const contact = {
-                id: Date.now(),
+            const payload = {
                 name: document.getElementById('name').value,
                 notes: document.getElementById('notes').value,
-                contacted: true,
                 joinedCommunity: document.getElementById('joinedCommunity').checked,
                 tookChallenge: document.getElementById('tookChallenge').checked,
                 submittedPaid: document.getElementById('submittedPaid').checked,
-                customer: document.getElementById('customer').checked,
-                dateAdded: new Date().toISOString()
+                customer: document.getElementById('customer').checked
             };
 
-            contacts.push(contact);
-            saveContacts();
-            updateDisplay();
+            submitButton.disabled = true;
+            submitButton.textContent = editingContactId ? 'Saving...' : 'Adding...';
 
-            // Reset form
-            resetForm();
-            alert('Contact added successfully! ✅');
+            try {
+                if (editingContactId) {
+                    await updateContactOnServer(editingContactId, payload);
+                    alert('Contact updated successfully! ✏️');
+                } else {
+                    await createContactOnServer(payload);
+                    alert('Contact added successfully! ✅');
+                }
+
+                await loadContacts();
+                resetForm();
+            } catch (error) {
+                console.error(error);
+                alert('We could not save this contact. Make sure the API server is running and try again.');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = editingContactId ? 'Update Contact' : 'Add Contact';
+            }
         });
 
         cancelEditButton.addEventListener('click', resetForm);
-        
-        function saveContacts() {
-            localStorage.setItem('speakerGymContacts', JSON.stringify(contacts));
+
+        async function loadContacts() {
+            try {
+                const response = await fetch(CONTACTS_API);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch contacts');
+                }
+                contacts = await response.json();
+            } catch (error) {
+                console.error('Unable to load contacts from server:', error);
+                contacts = [];
+            }
+            updateDisplay();
+        }
+
+        async function createContactOnServer(contact) {
+            const response = await fetch(CONTACTS_API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(contact)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create contact');
+            }
+
+            return response.json();
+        }
+
+        async function updateContactOnServer(id, updates) {
+            const response = await fetch(`${CONTACTS_API}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update contact');
+            }
+
+            return response.json();
+        }
+
+        async function deleteContact(id) {
+            if (!confirm('Are you sure you want to delete this contact?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${CONTACTS_API}/${id}`, { method: 'DELETE' });
+                if (!response.ok && response.status !== 204) {
+                    throw new Error('Failed to delete contact');
+                }
+
+                if (editingContactId === id) {
+                    resetForm();
+                }
+
+                await loadContacts();
+            } catch (error) {
+                console.error(error);
+                alert('Unable to delete contact. Please ensure the API server is running.');
+            }
         }
 
         function resetForm() {
@@ -433,19 +483,7 @@
             document.getElementById('name').focus();
         }
 
-        function deleteContact(id) {
-            if (confirm('Are you sure you want to delete this contact?')) {
-                contacts = contacts.filter(c => c.id !== id);
-                saveContacts();
-                updateDisplay();
-                if (editingContactId === id) {
-                    resetForm();
-                }
-            }
-        }
-        
         function updateDisplay() {
-            // Calculate funnel stats
             const stats = {
                 contacted: contacts.length,
                 joined: contacts.filter(c => c.joinedCommunity).length,
@@ -453,15 +491,13 @@
                 paid: contacts.filter(c => c.submittedPaid).length,
                 customers: contacts.filter(c => c.customer).length
             };
-            
-            // Update funnel counts
+
             document.getElementById('count-contacted').textContent = stats.contacted;
             document.getElementById('count-joined').textContent = stats.joined;
             document.getElementById('count-challenge').textContent = stats.challenge;
             document.getElementById('count-paid').textContent = stats.paid;
             document.getElementById('count-customers').textContent = stats.customers;
-            
-            // Update stage-to-stage percentages
+
             const toPercent = (numerator, denominator) => {
                 if (!denominator) return '0%';
                 return Math.round((numerator / denominator) * 100) + '%';
@@ -472,11 +508,9 @@
             document.getElementById('percent-challenge').textContent = toPercent(stats.challenge, stats.joined);
             document.getElementById('percent-paid').textContent = toPercent(stats.paid, stats.challenge);
             document.getElementById('percent-customers').textContent = toPercent(stats.customers, stats.paid);
-            
-            // Update total count
+
             document.getElementById('totalContacts').textContent = contacts.length;
-            
-            // Update contacts list
+
             const contactsList = document.getElementById('contactsList');
             if (contacts.length === 0) {
                 contactsList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No contacts yet. Add your first contact above!</p>';
