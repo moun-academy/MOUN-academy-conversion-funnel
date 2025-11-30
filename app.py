@@ -11,8 +11,11 @@ import argparse
 import http.server
 import json
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from openpyxl import Workbook, load_workbook
 
 
 DATA_DIR = Path("data")
@@ -86,6 +89,9 @@ class ContactsRequestHandler(http.server.BaseHTTPRequestHandler):
         self._set_common_headers()
 
     def do_GET(self) -> None:  # noqa: N802
+        if self.path == "/api/contacts/export":
+            self._handle_export_contacts()
+            return
         if self.path.startswith("/api/contacts"):
             self._handle_get_contacts()
             return
@@ -94,6 +100,9 @@ class ContactsRequestHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({"error": "Not found"}).encode())
 
     def do_POST(self) -> None:  # noqa: N802
+        if self.path == "/api/contacts/import":
+            self._handle_import_contacts()
+            return
         if self.path == "/api/contacts":
             self._handle_create_contact()
             return
@@ -153,6 +162,57 @@ class ContactsRequestHandler(http.server.BaseHTTPRequestHandler):
         self._set_common_headers(200)
         self.wfile.write(json.dumps(contacts).encode())
 
+    def _handle_export_contacts(self) -> None:
+        data = _load_web_data()
+        contacts = data.get("contacts", [])
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Contacts"
+        sheet.append(
+            [
+                "id",
+                "name",
+                "notes",
+                "joinedCommunity",
+                "tookChallenge",
+                "submittedPaid",
+                "customer",
+                "dateAdded",
+            ]
+        )
+
+        for contact in contacts:
+            sheet.append(
+                [
+                    contact.get("id"),
+                    contact.get("name"),
+                    contact.get("notes"),
+                    bool(contact.get("joinedCommunity")),
+                    bool(contact.get("tookChallenge")),
+                    bool(contact.get("submittedPaid")),
+                    bool(contact.get("customer")),
+                    contact.get("dateAdded"),
+                ]
+            )
+
+        output = BytesIO()
+        workbook.save(output)
+        binary = output.getvalue()
+
+        self.send_response(200)
+        self.send_header(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        self.send_header("Content-Disposition", "attachment; filename=contacts.xlsx")
+        self.send_header("Content-Length", str(len(binary)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+        self.wfile.write(binary)
+
     def _handle_create_contact(self) -> None:
         payload = self._read_json()
         name = (payload.get("name") or "").strip()
@@ -179,6 +239,72 @@ class ContactsRequestHandler(http.server.BaseHTTPRequestHandler):
 
         self._set_common_headers(201)
         self.wfile.write(json.dumps(new_contact).encode())
+
+    def _handle_import_contacts(self) -> None:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length == 0:
+            self._set_common_headers(400)
+            self.wfile.write(json.dumps({"error": "Missing file content"}).encode())
+            return
+
+        raw_body = self.rfile.read(length)
+
+        try:
+            workbook = load_workbook(BytesIO(raw_body))
+            sheet = workbook.active
+        except Exception:
+            self._set_common_headers(400)
+            self.wfile.write(json.dumps({"error": "Invalid Excel file"}).encode())
+            return
+
+        headers = [cell.value for cell in next(sheet.iter_rows(min_row=1, max_row=1))]
+        expected_headers = {
+            "id",
+            "name",
+            "notes",
+            "joinedCommunity",
+            "tookChallenge",
+            "submittedPaid",
+            "customer",
+            "dateAdded",
+        }
+
+        def _to_bool(value: Any) -> bool:
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str):
+                return value.strip().lower() in {"true", "1", "yes", "y"}
+            return bool(value)
+
+        if not headers or set(headers) != expected_headers:
+            self._set_common_headers(400)
+            self.wfile.write(
+                json.dumps({"error": "Excel sheet must contain the correct headers"}).encode()
+            )
+            return
+
+        new_contacts = []
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            if not any(row):
+                continue
+            contact_map = dict(zip(headers, row))
+            new_contacts.append(
+                {
+                    "id": int(contact_map.get("id") or int(datetime.utcnow().timestamp() * 1000)),
+                    "name": str(contact_map.get("name") or "").strip(),
+                    "notes": contact_map.get("notes") or "",
+                    "joinedCommunity": _to_bool(contact_map.get("joinedCommunity")),
+                    "tookChallenge": _to_bool(contact_map.get("tookChallenge")),
+                    "submittedPaid": _to_bool(contact_map.get("submittedPaid")),
+                    "customer": _to_bool(contact_map.get("customer")),
+                    "dateAdded": contact_map.get("dateAdded") or datetime.utcnow().isoformat() + "Z",
+                }
+            )
+
+        _save_web_data({"contacts": new_contacts})
+
+        self._set_common_headers(200)
+        self.wfile.write(json.dumps({"imported": len(new_contacts)}).encode())
 
     def _handle_update_contact(self) -> None:
         contact_id = self.path.rsplit("/", 1)[-1]

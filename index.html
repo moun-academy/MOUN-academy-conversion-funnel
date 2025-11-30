@@ -225,6 +225,13 @@
             font-weight: 600;
         }
 
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
         .btn-secondary {
             background: #e0e0e0;
             color: #333;
@@ -331,6 +338,11 @@
         
         <div class="card">
             <h2>👥 All Contacts (<span id="totalContacts">0</span>)</h2>
+            <div class="action-buttons">
+                <button type="button" id="exportExcel">Export to Excel</button>
+                <button type="button" id="importExcel" class="btn-secondary">Import from Excel</button>
+                <input type="file" id="importFile" accept=".xlsx,.xls" style="display: none;" />
+            </div>
             <div class="contacts-list" id="contactsList">
                 <p style="text-align: center; color: #999; padding: 20px;">No contacts yet. Add your first contact above!</p>
             </div>
@@ -340,6 +352,8 @@
     <script>
         const API_BASE = window.location.origin.startsWith('file') ? 'http://localhost:8000' : window.location.origin;
         const CONTACTS_API = `${API_BASE}/api/contacts`;
+        const CONTACTS_EXPORT_API = `${API_BASE}/api/contacts/export`;
+        const CONTACTS_IMPORT_API = `${API_BASE}/api/contacts/import`;
 
         let contacts = [];
         let editingContactId = null;
@@ -348,6 +362,9 @@
         const submitButton = contactForm.querySelector('button[type="submit"]');
         const cancelEditButton = document.getElementById('cancelEdit');
         const editingStatus = document.getElementById('editingStatus');
+        const exportButton = document.getElementById('exportExcel');
+        const importButton = document.getElementById('importExcel');
+        const importInput = document.getElementById('importFile');
 
         loadContacts();
 
@@ -387,6 +404,59 @@
         });
 
         cancelEditButton.addEventListener('click', resetForm);
+        exportButton.addEventListener('click', exportContacts);
+        importButton.addEventListener('click', () => importInput.click());
+        importInput.addEventListener('change', handleImportSelection);
+
+        async function exportContacts() {
+            try {
+                const response = await fetch(CONTACTS_EXPORT_API);
+                if (!response.ok) {
+                    throw new Error('Failed to export contacts');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'contacts.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error(error);
+                alert('Unable to export contacts. Please try again.');
+            }
+        }
+
+        async function handleImportSelection(event) {
+            const [file] = event.target.files;
+            if (!file) return;
+
+            try {
+                const response = await fetch(CONTACTS_IMPORT_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    },
+                    body: file
+                });
+
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({}));
+                    throw new Error(error.error || 'Failed to import contacts');
+                }
+
+                await loadContacts();
+                alert('Contacts imported successfully!');
+            } catch (error) {
+                console.error(error);
+                alert(error.message || 'Unable to import contacts. Please check the file and try again.');
+            } finally {
+                event.target.value = '';
+            }
+        }
 
         async function loadContacts() {
             try {
