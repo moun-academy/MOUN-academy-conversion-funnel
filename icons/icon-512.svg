@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Speaker Gym icon large">
+  <defs>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0f"/>
+      <stop offset="100%" stop-color="#1d1d30"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="86" fill="url(#g2)"/>
+  <rect x="74" y="74" width="364" height="364" rx="68" fill="#12121a" stroke="#f0c060" stroke-width="12"/>
+  <circle cx="256" cy="256" r="116" fill="none" stroke="#40d0d0" stroke-width="12"/>
+  <text x="256" y="296" font-family="'DM Sans', 'Arial', sans-serif" font-size="150" text-anchor="middle" fill="#f0c060" font-weight="700">SG</text>
+</svg>
