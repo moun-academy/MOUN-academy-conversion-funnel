@@ -17,6 +17,17 @@ the app offline and without any backend.
 1. Download or clone the repository.
 2. Open `index.html` in your browser. No server or dependencies are required.
 
+## Install as a Progressive Web App
+
+The tracker now ships with a web manifest and service worker so you can install
+it to your device and keep using it offline:
+
+1. Open `index.html` in your browser.
+2. Use the browser's **Install**/**Add to Home Screen** option to install the
+   app like a native experience.
+3. Launch the installed app to access your funnel data even without a
+   connection. Data remains stored locally in your browser.
+
 ## Importing/exporting contacts
 
 - **Export**: Click **Export Excel** to download a ready-to-open
