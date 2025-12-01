@@ -19,7 +19,8 @@ the app offline and without any backend.
 
 ## Importing/exporting contacts
 
-- **Export**: Click **Export** to download a `speaker-gym-contacts.json`
-  file containing your saved contacts.
+- **Export**: Click **Export Excel** to download a ready-to-open
+  `speaker-gym-contacts.xls` spreadsheet of your contacts. Use **Export
+  JSON** if you want a structured backup that can be re-imported.
 - **Import**: Click **Import** and select a `.json` file previously
   exported from the app to restore your data.

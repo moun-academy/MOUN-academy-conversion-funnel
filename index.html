@@ -1015,7 +1015,15 @@
                             <polyline points="7 10 12 15 17 10"/>
                             <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
-                        Export
+                        Export Excel
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="exportJsonBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Export JSON
                     </button>
                     <button type="button" class="btn btn-secondary" id="importBtn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1072,6 +1080,7 @@
         const editingBadge = document.getElementById('editingBadge');
         const searchInput = document.getElementById('searchInput');
         const exportBtn = document.getElementById('exportBtn');
+        const exportJsonBtn = document.getElementById('exportJsonBtn');
         const importBtn = document.getElementById('importBtn');
         const importFile = document.getElementById('importFile');
 
@@ -1085,6 +1094,7 @@
             renderContacts();
         });
         exportBtn.addEventListener('click', exportContacts);
+        exportJsonBtn.addEventListener('click', exportContactsAsJson);
         importBtn.addEventListener('click', () => importFile.click());
         importFile.addEventListener('change', handleImport);
 
@@ -1258,16 +1268,85 @@
         }
 
         function exportContacts() {
+            if (!contacts.length) {
+                showToast('No contacts to export', 'info');
+                return;
+            }
+
+            const headers = ['Name', 'Joined Community', 'Took Challenge', 'Submitted Paid', 'Customer', 'Notes', 'Date Added'];
+            const rows = contacts.map(contact => [
+                contact.name,
+                formatBoolean(contact.joinedCommunity),
+                formatBoolean(contact.tookChallenge),
+                formatBoolean(contact.submittedPaid),
+                formatBoolean(contact.customer),
+                contact.notes || '',
+                contact.dateAdded || ''
+            ]);
+
+            const excelXml = buildExcelXml(headers, rows);
+            downloadFile(excelXml, 'application/vnd.ms-excel', 'speaker-gym-contacts.xls');
+            showToast('Contacts exported to Excel!', 'success');
+        }
+
+        function exportContactsAsJson() {
             const blob = new Blob([JSON.stringify(contacts, null, 2)], { type: 'application/json' });
+            downloadFile(blob, 'application/json', 'speaker-gym-contacts.json');
+            showToast('Contacts exported as JSON!', 'success');
+        }
+
+        function downloadFile(content, mimeType, filename) {
+            const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'speaker-gym-contacts.json';
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-            showToast('Contacts exported!', 'success');
+        }
+
+        function escapeXml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+        }
+
+        function buildExcelXml(headers, rows) {
+            const headerRow = `<Row>${headers.map(header => `<Cell ss:StyleID="Header"><Data ss:Type="String">${escapeXml(header)}</Data></Cell>`).join('')}</Row>`;
+
+            const dataRows = rows.map(row =>
+                `<Row>${row.map(cell => `<Cell><Data ss:Type="String">${escapeXml(cell)}</Data></Cell>`).join('')}</Row>`
+            ).join('');
+
+            return `<?xml version="1.0"?>\n` +
+                `<?mso-application progid="Excel.Sheet"?>\n` +
+                `<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ` +
+                `xmlns:o="urn:schemas-microsoft-com:office:office" ` +
+                `xmlns:x="urn:schemas-microsoft-com:office:excel" ` +
+                `xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" ` +
+                `xmlns:html="http://www.w3.org/TR/REC-html40">` +
+                `<Styles>` +
+                `<Style ss:ID="Header">` +
+                `<Font ss:Bold="1"/>` +
+                `<Interior ss:Color="#1a1a24" ss:Pattern="Solid"/>` +
+                `<Font ss:Color="#f0c060"/>` +
+                `</Style>` +
+                `</Styles>` +
+                `<Worksheet ss:Name="Contacts">` +
+                `<Table>` +
+                `${headerRow}${dataRows}` +
+                `</Table>` +
+                `</Worksheet>` +
+                `</Workbook>`;
+        }
+
+        function formatBoolean(value) {
+            return value ? 'Yes' : 'No';
         }
 
         function handleImport(event) {
