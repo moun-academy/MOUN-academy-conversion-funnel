@@ -37,8 +37,14 @@ def _ensure_web_store() -> None:
 
 def _load_data() -> Dict[str, Any]:
     _ensure_store()
-    with DATA_FILE.open() as f:
-        return json.load(f)
+    try:
+        with DATA_FILE.open() as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        # If the file is corrupted or unreadable, reset it to a safe default
+        fallback = {"contacts": []}
+        _save_data(fallback)
+        return fallback
 
 
 def _save_data(data: Dict[str, Any]) -> None:
@@ -49,8 +55,13 @@ def _save_data(data: Dict[str, Any]) -> None:
 
 def _load_web_data() -> Dict[str, Any]:
     _ensure_web_store()
-    with WEB_DATA_FILE.open() as f:
-        return json.load(f)
+    try:
+        with WEB_DATA_FILE.open() as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        fallback = {"contacts": []}
+        _save_web_data(fallback)
+        return fallback
 
 
 def _save_web_data(data: Dict[str, Any]) -> None:
