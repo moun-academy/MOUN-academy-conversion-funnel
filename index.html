@@ -7,840 +7,107 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    
     <style>
-        :root {
-            --bg-deep: #0a0a0f;
-            --bg-card: #12121a;
-            --bg-elevated: #1a1a24;
-            --border: #2a2a3a;
-            --text-primary: #f0f0f5;
-            --text-secondary: #8888a0;
-            --text-muted: #555566;
-            --accent-gold: #f0c060;
-            --accent-gold-dim: #c49a40;
-            --accent-cyan: #40d0d0;
-            --accent-magenta: #d060c0;
-            --accent-success: #40c080;
-            --accent-danger: #e05050;
-            --gradient-stage: linear-gradient(135deg, #f0c060 0%, #d060c0 50%, #40d0d0 100%);
-            --shadow-glow: 0 0 60px rgba(240, 192, 96, 0.15);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 20px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg-deep);
-            color: var(--text-primary);
-            min-height: 100vh;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Ambient background effect */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: 
-                radial-gradient(ellipse at 20% 20%, rgba(240, 192, 96, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(64, 208, 208, 0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 50%, rgba(208, 96, 192, 0.04) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 24px;
-        }
-
-        /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 48px;
-            position: relative;
-        }
-
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: -24px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 2px;
-            background: var(--gradient-stage);
-            border-radius: 2px;
-        }
-
-        .logo {
-            font-family: 'Syne', sans-serif;
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 800;
-            background: var(--gradient-stage);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.02em;
-            margin-bottom: 8px;
-        }
-
-        .tagline {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        /* Stats Bar */
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: var(--accent-gold-dim);
-            box-shadow: var(--shadow-glow);
-            transform: translateY(-2px);
-        }
-
-        .stat-value {
-            font-family: 'Syne', sans-serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--accent-gold);
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-top: 8px;
-        }
-
-        /* Main Grid */
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        @media (max-width: 1024px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Cards */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 28px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: var(--gradient-stage);
-            opacity: 0.5;
-        }
-
-        .card-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-title .icon {
-            font-size: 1.2rem;
-        }
-
-        /* Funnel Visualization */
-        .funnel-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .funnel-stage {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px 20px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            cursor: default;
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-
-        .funnel-stage::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: var(--progress, 0%);
-            background: var(--stage-color);
-            opacity: 0.15;
-            transition: width 0.6s ease;
-        }
-
-        .funnel-stage:hover {
-            border-color: var(--stage-color);
-            transform: translateX(4px);
-        }
-
+        /* [KEEP YOUR EXISTING CSS HERE - It was perfect] */
+        :root { --bg-deep: #0a0a0f; --bg-card: #12121a; --bg-elevated: #1a1a24; --border: #2a2a3a; --text-primary: #f0f0f5; --text-secondary: #8888a0; --text-muted: #555566; --accent-gold: #f0c060; --accent-gold-dim: #c49a40; --accent-cyan: #40d0d0; --accent-magenta: #d060c0; --accent-success: #40c080; --accent-danger: #e05050; --gradient-stage: linear-gradient(135deg, #f0c060 0%, #d060c0 50%, #40d0d0 100%); --shadow-glow: 0 0 60px rgba(240, 192, 96, 0.15); --radius-sm: 8px; --radius-md: 12px; --radius-lg: 20px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg-deep); color: var(--text-primary); min-height: 100vh; line-height: 1.6; overflow-x: hidden; }
+        body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 20% 20%, rgba(240, 192, 96, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(64, 208, 208, 0.06) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(208, 96, 192, 0.04) 0%, transparent 60%); pointer-events: none; z-index: -1; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; }
+        .header { text-align: center; margin-bottom: 48px; position: relative; }
+        .header::after { content: ''; position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 120px; height: 2px; background: var(--gradient-stage); border-radius: 2px; }
+        .logo { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; background: var(--gradient-stage); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .tagline { color: var(--text-secondary); font-size: 1rem; letter-spacing: 0.1em; text-transform: uppercase; }
+        .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; text-align: center; transition: all 0.3s ease; }
+        .stat-card:hover { border-color: var(--accent-gold-dim); box-shadow: var(--shadow-glow); transform: translateY(-2px); }
+        .stat-value { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 700; color: var(--accent-gold); line-height: 1; }
+        .stat-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; margin-bottom: 32px; }
+        @media (max-width: 1024px) { .dashboard { grid-template-columns: 1fr; } }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--gradient-stage); opacity: 0.5; }
+        .card-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+        .card-title .icon { font-size: 1.2rem; }
+        .funnel-container { display: flex; flex-direction: column; gap: 12px; }
+        .funnel-stage { position: relative; display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: default; transition: all 0.3s ease; overflow: hidden; }
+        .funnel-stage::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: var(--progress, 0%); background: var(--stage-color); opacity: 0.15; transition: width 0.6s ease; }
+        .funnel-stage:hover { border-color: var(--stage-color); transform: translateX(4px); }
         .funnel-stage:nth-child(1) { --stage-color: var(--accent-gold); }
         .funnel-stage:nth-child(2) { --stage-color: #e09050; }
         .funnel-stage:nth-child(3) { --stage-color: var(--accent-magenta); }
         .funnel-stage:nth-child(4) { --stage-color: #8060d0; }
         .funnel-stage:nth-child(5) { --stage-color: var(--accent-cyan); }
-
-        .stage-indicator {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--stage-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: var(--bg-deep);
-            flex-shrink: 0;
-            position: relative;
-            z-index: 1;
-            box-shadow: 0 0 20px color-mix(in srgb, var(--stage-color) 40%, transparent);
-        }
-
-        .stage-info {
-            flex: 1;
-            position: relative;
-            z-index: 1;
-        }
-
-        .stage-label {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-        }
-
-        .stage-meta {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .stage-rate {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            color: var(--stage-color);
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Form Styles */
-        .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .editing-badge {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background: var(--accent-gold);
-            color: var(--bg-deep);
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .editing-badge.active {
-            display: flex;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 8px;
-        }
-
-        .form-group input[type="text"],
-        .form-group textarea {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-        }
-
-        .form-group input[type="text"]:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--accent-gold);
-            box-shadow: 0 0 0 3px rgba(240, 192, 96, 0.1);
-        }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: var(--text-muted);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        /* Checkbox Group */
-        .checkbox-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .checkbox-item:hover {
-            border-color: var(--text-muted);
-        }
-
-        .checkbox-item.checked {
-            border-color: var(--accent-gold-dim);
-            background: rgba(240, 192, 96, 0.05);
-        }
-
-        .checkbox-item input {
-            display: none;
-        }
-
-        .checkbox-custom {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border);
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .checkbox-item.checked .checkbox-custom {
-            background: var(--accent-gold);
-            border-color: var(--accent-gold);
-        }
-
-        .checkbox-custom svg {
-            width: 12px;
-            height: 12px;
-            stroke: var(--bg-deep);
-            stroke-width: 3;
-            opacity: 0;
-            transform: scale(0.5);
-            transition: all 0.15s ease;
-        }
-
-        .checkbox-item.checked .checkbox-custom svg {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .checkbox-label {
-            font-size: 0.9rem;
-            color: var(--text-primary);
-        }
-
-        .checkbox-item.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 14px 24px;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .btn-primary {
-            background: var(--gradient-stage);
-            color: var(--bg-deep);
-            width: 100%;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(240, 192, 96, 0.3);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: var(--bg-elevated);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--text-muted);
-            background: var(--bg-card);
-        }
-
-        .btn-danger {
-            background: transparent;
-            color: var(--accent-danger);
-            border: 1px solid var(--accent-danger);
-            padding: 8px 12px;
-            font-size: 0.75rem;
-        }
-
-        .btn-danger:hover {
-            background: var(--accent-danger);
-            color: white;
-        }
-
-        .btn-edit {
-            background: transparent;
-            color: var(--accent-cyan);
-            border: 1px solid var(--accent-cyan);
-            padding: 8px 12px;
-            font-size: 0.75rem;
-        }
-
-        .btn-edit:hover {
-            background: var(--accent-cyan);
-            color: var(--bg-deep);
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .form-actions .btn-secondary {
-            display: none;
-        }
-
-        .form-actions.editing .btn-secondary {
-            display: flex;
-        }
-
-        /* Contacts Section */
-        .contacts-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .contacts-count {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
-
-        .contacts-count span {
-            color: var(--accent-gold);
-        }
-
-        .contacts-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .contacts-actions .btn {
-            padding: 10px 16px;
-            font-size: 0.75rem;
-        }
-
-        /* Search */
-        .search-box {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 14px 16px 14px 48px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--accent-gold);
-        }
-
-        .search-box input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-box svg {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            stroke: var(--text-muted);
-        }
-
-        /* Contacts List */
-        .contacts-list {
-            max-height: 500px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--border) transparent;
-        }
-
-        .contacts-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .contacts-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .contacts-list::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 3px;
-        }
-
-        .contact-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .contact-item:last-child {
-            border-bottom: none;
-        }
-
-        .contact-item:hover {
-            background: var(--bg-elevated);
-        }
-
-        .contact-info h3 {
-            font-family: 'Syne', sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .contact-info p {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-        }
-
-        .contact-stages {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .stage-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
+        .stage-indicator { width: 48px; height: 48px; border-radius: 50%; background: var(--stage-color); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--bg-deep); flex-shrink: 0; position: relative; z-index: 1; box-shadow: 0 0 20px color-mix(in srgb, var(--stage-color) 40%, transparent); }
+        .stage-info { flex: 1; position: relative; z-index: 1; }
+        .stage-label { font-weight: 600; font-size: 0.95rem; color: var(--text-primary); margin-bottom: 2px; }
+        .stage-meta { font-size: 0.8rem; color: var(--text-secondary); }
+        .stage-rate { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; color: var(--stage-color); position: relative; z-index: 1; }
+        .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .editing-badge { display: none; align-items: center; gap: 8px; padding: 6px 12px; background: var(--accent-gold); color: var(--bg-deep); border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .editing-badge.active { display: flex; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+        .form-group input[type="text"], .form-group textarea { width: 100%; padding: 14px 16px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: inherit; font-size: 1rem; transition: all 0.2s ease; }
+        .form-group input[type="text"]:focus, .form-group textarea:focus { outline: none; border-color: var(--accent-gold); box-shadow: 0 0 0 3px rgba(240, 192, 96, 0.1); }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+        .checkbox-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s ease; }
+        .checkbox-item:hover { border-color: var(--text-muted); }
+        .checkbox-item.checked { border-color: var(--accent-gold-dim); background: rgba(240, 192, 96, 0.05); }
+        .checkbox-item input { display: none; }
+        .checkbox-custom { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; }
+        .checkbox-item.checked .checkbox-custom { background: var(--accent-gold); border-color: var(--accent-gold); }
+        .checkbox-custom svg { width: 12px; height: 12px; stroke: var(--bg-deep); stroke-width: 3; opacity: 0; transform: scale(0.5); transition: all 0.15s ease; }
+        .checkbox-item.checked .checkbox-custom svg { opacity: 1; transform: scale(1); }
+        .checkbox-label { font-size: 0.9rem; color: var(--text-primary); }
+        .checkbox-item.disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 24px; font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 600; border: none; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.05em; }
+        .btn-primary { background: var(--gradient-stage); color: var(--bg-deep); width: 100%; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(240, 192, 96, 0.3); }
+        .btn-secondary { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--text-muted); background: var(--bg-card); }
+        .btn-danger { background: transparent; color: var(--accent-danger); border: 1px solid var(--accent-danger); padding: 8px 12px; font-size: 0.75rem; }
+        .btn-danger:hover { background: var(--accent-danger); color: white; }
+        .btn-edit { background: transparent; color: var(--accent-cyan); border: 1px solid var(--accent-cyan); padding: 8px 12px; font-size: 0.75rem; }
+        .btn-edit:hover { background: var(--accent-cyan); color: var(--bg-deep); }
+        .form-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .form-actions .btn-secondary { display: none; }
+        .form-actions.editing .btn-secondary { display: flex; }
+        .contacts-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+        .contacts-count { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; }
+        .contacts-count span { color: var(--accent-gold); }
+        .contacts-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .contacts-actions .btn { padding: 10px 16px; font-size: 0.75rem; }
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-box input { width: 100%; padding: 14px 16px 14px 48px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.95rem; transition: all 0.2s ease; }
+        .search-box input:focus { outline: none; border-color: var(--accent-gold); }
+        .search-box svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: var(--text-muted); }
+        .contacts-list { max-height: 500px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+        .contacts-list::-webkit-scrollbar { width: 6px; }
+        .contact-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px; border-bottom: 1px solid var(--border); transition: all 0.2s ease; cursor: pointer; }
+        .contact-item:hover { background: var(--bg-elevated); }
+        .contact-info h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+        .contact-info p { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px; }
+        .contact-stages { display: flex; gap: 6px; flex-wrap: wrap; }
+        .stage-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
         .stage-badge.joined { background: rgba(224, 144, 80, 0.2); color: #e09050; }
         .stage-badge.challenge { background: rgba(208, 96, 192, 0.2); color: var(--accent-magenta); }
         .stage-badge.submitted { background: rgba(128, 96, 208, 0.2); color: #8060d0; }
         .stage-badge.customer { background: rgba(64, 208, 208, 0.2); color: var(--accent-cyan); }
-
-        .contact-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state svg {
-            width: 64px;
-            height: 64px;
-            stroke: var(--text-muted);
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .empty-state p {
-            font-size: 1rem;
-        }
-
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            z-index: 1000;
-            pointer-events: none;
-        }
-
-        .toast {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 20px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-            pointer-events: auto;
-            animation: slideIn 0.3s ease;
-        }
-
-        .toast.success {
-            border-left: 3px solid var(--accent-success);
-        }
-
-        .toast.error {
-            border-left: 3px solid var(--accent-danger);
-        }
-
-        .toast.info {
-            border-left: 3px solid var(--accent-cyan);
-        }
-
-        .toast-icon {
-            width: 24px;
-            height: 24px;
-            flex-shrink: 0;
-        }
-
-        .toast.success .toast-icon { stroke: var(--accent-success); }
-        .toast.error .toast-icon { stroke: var(--accent-danger); }
-        .toast.info .toast-icon { stroke: var(--accent-cyan); }
-
-        .toast-message {
-            font-size: 0.9rem;
-            color: var(--text-primary);
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(100px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideOut {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(100px);
-            }
-        }
-
-        /* File Input */
-        .file-input {
-            display: none;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 24px 16px;
-            }
-
-            .header {
-                margin-bottom: 32px;
-            }
-
-            .stats-bar {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .card {
-                padding: 20px;
-            }
-
-            .funnel-stage {
-                padding: 14px 16px;
-            }
-
-            .stage-indicator {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-
-            .contacts-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .contacts-actions {
-                justify-content: stretch;
-            }
-
-            .contacts-actions .btn {
-                flex: 1;
-            }
-
-            .contact-item {
-                flex-direction: column;
-                gap: 12px;
-            }
-
-            .contact-actions {
-                align-self: flex-start;
-            }
-        }
-
-        /* Loading State */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
-
-        .spinner {
-            width: 32px;
-            height: 32px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent-gold);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        .contact-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <header class="header">
             <h1 class="logo">Speaker Gym</h1>
             <p class="tagline">Funnel Tracker</p>
         </header>
 
-        <!-- Stats Bar -->
         <div class="stats-bar">
             <div class="stat-card">
                 <div class="stat-value" id="stat-total">0</div>
@@ -860,9 +127,7 @@
             </div>
         </div>
 
-        <!-- Main Dashboard -->
         <div class="dashboard">
-            <!-- Funnel Card -->
             <div class="card">
                 <h2 class="card-title">
                     <span class="icon">📊</span>
@@ -877,7 +142,7 @@
                         </div>
                         <div class="stage-rate">100%</div>
                     </div>
-                    <div class="funnel-stage" style="--progress: 0%">
+                    <div class="funnel-stage" style="--progress: 0%" id="stage-joined">
                         <div class="stage-indicator" id="count-joined">0</div>
                         <div class="stage-info">
                             <div class="stage-label">Joined Community</div>
@@ -885,7 +150,7 @@
                         </div>
                         <div class="stage-rate" id="percent-joined">0%</div>
                     </div>
-                    <div class="funnel-stage" style="--progress: 0%">
+                    <div class="funnel-stage" style="--progress: 0%" id="stage-challenge">
                         <div class="stage-indicator" id="count-challenge">0</div>
                         <div class="stage-info">
                             <div class="stage-label">7-Day Challenge</div>
@@ -893,7 +158,7 @@
                         </div>
                         <div class="stage-rate" id="percent-challenge">0%</div>
                     </div>
-                    <div class="funnel-stage" style="--progress: 0%">
+                    <div class="funnel-stage" style="--progress: 0%" id="stage-paid">
                         <div class="stage-indicator" id="count-paid">0</div>
                         <div class="stage-info">
                             <div class="stage-label">90-Day Submitted</div>
@@ -901,7 +166,7 @@
                         </div>
                         <div class="stage-rate" id="percent-paid">0%</div>
                     </div>
-                    <div class="funnel-stage" style="--progress: 0%">
+                    <div class="funnel-stage" style="--progress: 0%" id="stage-customers">
                         <div class="stage-indicator" id="count-customers">0</div>
                         <div class="stage-info">
                             <div class="stage-label">Customers</div>
@@ -912,7 +177,6 @@
                 </div>
             </div>
 
-            <!-- Form Card -->
             <div class="card">
                 <div class="form-header">
                     <h2 class="card-title">
@@ -920,10 +184,6 @@
                         <span id="formTitle">Add Contact</span>
                     </h2>
                     <div class="editing-badge" id="editingBadge">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
                         Editing
                     </div>
                 </div>
@@ -945,45 +205,35 @@
                             <div class="checkbox-item checked disabled">
                                 <input type="checkbox" id="contacted" checked disabled>
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
                                 </div>
                                 <span class="checkbox-label">Contacted (default)</span>
                             </div>
                             <div class="checkbox-item" onclick="toggleCheckbox(this)">
                                 <input type="checkbox" id="joinedCommunity">
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
                                 </div>
                                 <span class="checkbox-label">Joined Community</span>
                             </div>
                             <div class="checkbox-item" onclick="toggleCheckbox(this)">
                                 <input type="checkbox" id="tookChallenge">
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
                                 </div>
                                 <span class="checkbox-label">Took 7-Day Challenge</span>
                             </div>
                             <div class="checkbox-item" onclick="toggleCheckbox(this)">
                                 <input type="checkbox" id="submittedPaid">
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
                                 </div>
                                 <span class="checkbox-label">Submitted for 90-Day Program</span>
                             </div>
                             <div class="checkbox-item" onclick="toggleCheckbox(this)">
                                 <input type="checkbox" id="customer">
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
                                 </div>
                                 <span class="checkbox-label">Customer (Paid 90-Day)</span>
                             </div>
@@ -991,510 +241,82 @@
                     </div>
                     
                     <div class="form-actions" id="formActions">
-                        <button type="submit" class="btn btn-primary" id="submitBtn">
-                            Add Contact
-                        </button>
-                        <button type="button" class="btn btn-secondary" id="cancelBtn" onclick="resetForm()">
-                            Cancel
-                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Add Contact</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn" onclick="resetForm()">Cancel</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Contacts List Card -->
         <div class="card">
             <div class="contacts-header">
-                <h2 class="contacts-count">
-                    All Contacts (<span id="totalContacts">0</span>)
-                </h2>
+                <h2 class="contacts-count">All Contacts (<span id="totalContacts">0</span>)</h2>
                 <div class="contacts-actions">
-                    <button type="button" class="btn btn-secondary" id="exportBtn">
+                    <button type="button" class="btn btn-secondary" onclick="exportToExcel()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                         Export Excel
                     </button>
-                    <button type="button" class="btn btn-secondary" id="exportJsonBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Export JSON
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="importBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="17 8 12 3 7 8"/>
-                            <line x1="12" y1="3" x2="12" y2="15"/>
-                        </svg>
-                        Import
-                    </button>
-                    <input type="file" id="importFile" class="file-input" accept=".json">
                 </div>
             </div>
-
+            
             <div class="search-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input type="text" id="searchInput" placeholder="Search contacts...">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="renderContacts()">
             </div>
 
             <div class="contacts-list" id="contactsList">
                 <div class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    </svg>
-                    <p>No contacts yet. Add your first contact above!</p>
+                    <p>No contacts yet. Add your first lead!</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-
     <script>
-        // Local storage configuration
-        const STORAGE_KEY = 'speakerGymContacts';
-
         // State
-        let contacts = [];
-        let editingContactId = null;
-        let searchQuery = '';
-
-        // DOM Elements
-        const contactForm = document.getElementById('contactForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const formActions = document.getElementById('formActions');
-        const formTitle = document.getElementById('formTitle');
-        const editingBadge = document.getElementById('editingBadge');
-        const searchInput = document.getElementById('searchInput');
-        const exportBtn = document.getElementById('exportBtn');
-        const exportJsonBtn = document.getElementById('exportJsonBtn');
-        const importBtn = document.getElementById('importBtn');
-        const importFile = document.getElementById('importFile');
+        let contacts = JSON.parse(localStorage.getItem('speakerGymContacts')) || [];
+        let editingId = null;
 
         // Initialize
-        loadContacts();
+        renderContacts();
+        updateStats();
 
-        // Event Listeners
-        contactForm.addEventListener('submit', handleSubmit);
-        searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value.toLowerCase();
-            renderContacts();
-        });
-        exportBtn.addEventListener('click', exportContacts);
-        exportJsonBtn.addEventListener('click', exportContactsAsJson);
-        importBtn.addEventListener('click', () => importFile.click());
-        importFile.addEventListener('change', handleImport);
-
-        // Toast Notification System
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            const icons = {
-                success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-                error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-                info: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
-            };
-
-            toast.innerHTML = `
-                ${icons[type]}
-                <span class="toast-message">${message}</span>
-            `;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease forwards';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+        // 1. Toggle Checkbox Visuals
+        function toggleCheckbox(element) {
+            if (element.classList.contains('disabled')) return;
+            element.classList.toggle('checked');
+            const input = element.querySelector('input');
+            input.checked = element.classList.contains('checked');
         }
 
-        // Checkbox Toggle
-        function toggleCheckbox(item) {
-            if (item.classList.contains('disabled')) return;
-            const checkbox = item.querySelector('input[type="checkbox"]');
-            checkbox.checked = !checkbox.checked;
-            item.classList.toggle('checked', checkbox.checked);
-        }
-
-        // Form Handling
-        function handleSubmit(e) {
+        // 2. Handle Form Submit
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
             e.preventDefault();
-
-            const payload = {
-                name: document.getElementById('name').value.trim(),
-                notes: document.getElementById('notes').value.trim(),
-                joinedCommunity: document.getElementById('joinedCommunity').checked,
-                tookChallenge: document.getElementById('tookChallenge').checked,
-                submittedPaid: document.getElementById('submittedPaid').checked,
-                customer: document.getElementById('customer').checked,
-                dateAdded: editingContactId
-                    ? (contacts.find(c => c.id === editingContactId)?.dateAdded || new Date().toISOString().split('T')[0])
-                    : new Date().toISOString().split('T')[0]
-            };
-
-            if (!payload.name) {
-                showToast('Please enter a name', 'error');
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = editingContactId ? 'Saving...' : 'Adding...';
-
-            try {
-                if (editingContactId) {
-                    updateContact(editingContactId, payload);
-                    showToast('Contact updated successfully!', 'success');
-                } else {
-                    createContact(payload);
-                    showToast('Contact added successfully!', 'success');
-                }
-                loadContacts();
-                resetForm();
-            } catch (error) {
-                console.error(error);
-                showToast('Failed to save contact. Please try again.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = editingContactId ? 'Update Contact' : 'Add Contact';
-            }
-        }
-
-        function resetForm() {
-            contactForm.reset();
-            editingContactId = null;
-            submitBtn.textContent = 'Add Contact';
-            formTitle.textContent = 'Add Contact';
-            editingBadge.classList.remove('active');
-            formActions.classList.remove('editing');
             
-            // Reset checkboxes
-            document.querySelectorAll('.checkbox-item').forEach(item => {
-                if (!item.classList.contains('disabled')) {
-                    item.classList.remove('checked');
-                    item.querySelector('input').checked = false;
+            const name = document.getElementById('name').value;
+            const notes = document.getElementById('notes').value;
+            const joinedCommunity = document.getElementById('joinedCommunity').checked;
+            const tookChallenge = document.getElementById('tookChallenge').checked;
+            const submittedPaid = document.getElementById('submittedPaid').checked;
+            const customer = document.getElementById('customer').checked;
+
+            if (editingId) {
+                // Edit existing
+                const index = contacts.findIndex(c => c.id === editingId);
+                if (index !== -1) {
+                    contacts[index] = { ...contacts[index], name, notes, joinedCommunity, tookChallenge, submittedPaid, customer };
                 }
-            });
-        }
-
-        function startEdit(id) {
-            const contact = contacts.find(c => c.id === id);
-            if (!contact) return;
-
-            editingContactId = id;
-            document.getElementById('name').value = contact.name;
-            document.getElementById('notes').value = contact.notes || '';
-
-            // Set checkboxes
-            const checkboxes = {
-                joinedCommunity: contact.joinedCommunity,
-                tookChallenge: contact.tookChallenge,
-                submittedPaid: contact.submittedPaid,
-                customer: contact.customer
-            };
-
-            Object.entries(checkboxes).forEach(([id, checked]) => {
-                const input = document.getElementById(id);
-                input.checked = checked;
-                input.closest('.checkbox-item').classList.toggle('checked', checked);
-            });
-
-            submitBtn.textContent = 'Update Contact';
-            formTitle.textContent = `Edit ${contact.name}`;
-            editingBadge.classList.add('active');
-            formActions.classList.add('editing');
-            document.getElementById('name').focus();
-
-            // Scroll to form on mobile
-            if (window.innerWidth < 1024) {
-                document.querySelector('.card:nth-child(2)').scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
-        // Contact management (local-only)
-        function loadContacts() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                contacts = saved ? JSON.parse(saved) : [];
-            } catch (error) {
-                console.error('Unable to load contacts:', error);
-                contacts = [];
-            }
-            updateDisplay();
-        }
-
-        function persistContacts() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
-        }
-
-        function createContact(payload) {
-            const newContact = {
-                id: Date.now(),
-                ...payload
-            };
-            contacts.push(newContact);
-            persistContacts();
-            return newContact;
-        }
-
-        function updateContact(id, payload) {
-            contacts = contacts.map(contact => contact.id === id ? { ...contact, ...payload } : contact);
-            persistContacts();
-            return contacts.find(contact => contact.id === id);
-        }
-
-        function deleteContact(id) {
-            if (!confirm('Delete this contact?')) return;
-
-            contacts = contacts.filter(contact => contact.id !== id);
-            persistContacts();
-            if (editingContactId === id) resetForm();
-            updateDisplay();
-            showToast('Contact deleted', 'success');
-        }
-
-        function exportContacts() {
-            if (!contacts.length) {
-                showToast('No contacts to export', 'info');
-                return;
+                resetForm();
+            } else {
+                // Add new
+                const newContact = {
+                    id: Date.now(),
+                    date: new Date().toISOString(),
+                    name, notes, joinedCommunity, tookChallenge, submittedPaid, customer
+                };
+                contacts.push(newContact);
             }
 
-            const headers = ['Name', 'Joined Community', 'Took Challenge', 'Submitted Paid', 'Customer', 'Notes', 'Date Added'];
-            const rows = contacts.map(contact => [
-                contact.name,
-                formatBoolean(contact.joinedCommunity),
-                formatBoolean(contact.tookChallenge),
-                formatBoolean(contact.submittedPaid),
-                formatBoolean(contact.customer),
-                contact.notes || '',
-                contact.dateAdded || ''
-            ]);
-
-            const excelXml = buildExcelXml(headers, rows);
-            downloadFile(excelXml, 'application/vnd.ms-excel', 'speaker-gym-contacts.xls');
-            showToast('Contacts exported to Excel!', 'success');
-        }
-
-        function exportContactsAsJson() {
-            const blob = new Blob([JSON.stringify(contacts, null, 2)], { type: 'application/json' });
-            downloadFile(blob, 'application/json', 'speaker-gym-contacts.json');
-            showToast('Contacts exported as JSON!', 'success');
-        }
-
-        function downloadFile(content, mimeType, filename) {
-            const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        }
-
-        function escapeXml(value) {
-            return String(value ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&apos;');
-        }
-
-        function buildExcelXml(headers, rows) {
-            const headerRow = `<Row>${headers.map(header => `<Cell ss:StyleID="Header"><Data ss:Type="String">${escapeXml(header)}</Data></Cell>`).join('')}</Row>`;
-
-            const dataRows = rows.map(row =>
-                `<Row>${row.map(cell => `<Cell><Data ss:Type="String">${escapeXml(cell)}</Data></Cell>`).join('')}</Row>`
-            ).join('');
-
-            return `<?xml version="1.0"?>\n` +
-                `<?mso-application progid="Excel.Sheet"?>\n` +
-                `<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" ` +
-                `xmlns:o="urn:schemas-microsoft-com:office:office" ` +
-                `xmlns:x="urn:schemas-microsoft-com:office:excel" ` +
-                `xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" ` +
-                `xmlns:html="http://www.w3.org/TR/REC-html40">` +
-                `<Styles>` +
-                `<Style ss:ID="Header">` +
-                `<Font ss:Bold="1"/>` +
-                `<Interior ss:Color="#1a1a24" ss:Pattern="Solid"/>` +
-                `<Font ss:Color="#f0c060"/>` +
-                `</Style>` +
-                `</Styles>` +
-                `<Worksheet ss:Name="Contacts">` +
-                `<Table>` +
-                `${headerRow}${dataRows}` +
-                `</Table>` +
-                `</Worksheet>` +
-                `</Workbook>`;
-        }
-
-        function formatBoolean(value) {
-            return value ? 'Yes' : 'No';
-        }
-
-        function handleImport(event) {
-            const [file] = event.target.files;
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const parsed = JSON.parse(e.target.result || '[]');
-                    if (!Array.isArray(parsed)) throw new Error('Invalid file format');
-
-                    contacts = parsed.map((contact, index) => ({
-                        id: contact.id || Date.now() + index,
-                        name: contact.name || 'Unnamed contact',
-                        notes: contact.notes || '',
-                        joinedCommunity: Boolean(contact.joinedCommunity),
-                        tookChallenge: Boolean(contact.tookChallenge),
-                        submittedPaid: Boolean(contact.submittedPaid),
-                        customer: Boolean(contact.customer),
-                        dateAdded: contact.dateAdded || new Date().toISOString().split('T')[0]
-                    }));
-
-                    persistContacts();
-                    updateDisplay();
-                    showToast('Contacts imported successfully!', 'success');
-                } catch (error) {
-                    console.error(error);
-                    showToast('Failed to import contacts', 'error');
-                } finally {
-                    event.target.value = '';
-                }
-            };
-
-            reader.readAsText(file);
-        }
-
-        // Display Functions
-        function updateDisplay() {
-            updateStats();
-            updateFunnel();
-            renderContacts();
-        }
-
-        function updateStats() {
-            const total = contacts.length;
-            const joined = contacts.filter(c => c.joinedCommunity).length;
-            const challenge = contacts.filter(c => c.tookChallenge).length;
-            const customers = contacts.filter(c => c.customer).length;
-
-            document.getElementById('stat-total').textContent = total;
-            document.getElementById('stat-community').textContent = total ? Math.round((joined / total) * 100) + '%' : '0%';
-            document.getElementById('stat-challenge').textContent = joined ? Math.round((challenge / joined) * 100) + '%' : '0%';
-            document.getElementById('stat-conversion').textContent = total ? Math.round((customers / total) * 100) + '%' : '0%';
-        }
-
-        function updateFunnel() {
-            const stats = {
-                contacted: contacts.length,
-                joined: contacts.filter(c => c.joinedCommunity).length,
-                challenge: contacts.filter(c => c.tookChallenge).length,
-                paid: contacts.filter(c => c.submittedPaid).length,
-                customers: contacts.filter(c => c.customer).length
-            };
-
-            const toPercent = (num, denom) => denom ? Math.round((num / denom) * 100) : 0;
-
-            // Update counts
-            document.getElementById('count-contacted').textContent = stats.contacted;
-            document.getElementById('count-joined').textContent = stats.joined;
-            document.getElementById('count-challenge').textContent = stats.challenge;
-            document.getElementById('count-paid').textContent = stats.paid;
-            document.getElementById('count-customers').textContent = stats.customers;
-
-            // Update percentages
-            const percentages = [
-                100,
-                toPercent(stats.joined, stats.contacted),
-                toPercent(stats.challenge, stats.joined),
-                toPercent(stats.paid, stats.challenge),
-                toPercent(stats.customers, stats.paid)
-            ];
-
-            document.getElementById('percent-joined').textContent = percentages[1] + '%';
-            document.getElementById('percent-challenge').textContent = percentages[2] + '%';
-            document.getElementById('percent-paid').textContent = percentages[3] + '%';
-            document.getElementById('percent-customers').textContent = percentages[4] + '%';
-
-            // Update progress bars
-            const stages = document.querySelectorAll('.funnel-stage');
-            stages.forEach((stage, i) => {
-                stage.style.setProperty('--progress', percentages[i] + '%');
-            });
-        }
-
-        function renderContacts() {
-            const contactsList = document.getElementById('contactsList');
-            document.getElementById('totalContacts').textContent = contacts.length;
-
-            let filtered = contacts;
-            if (searchQuery) {
-                filtered = contacts.filter(c => 
-                    c.name.toLowerCase().includes(searchQuery) ||
-                    (c.notes && c.notes.toLowerCase().includes(searchQuery))
-                );
-            }
-
-            if (filtered.length === 0) {
-                contactsList.innerHTML = `
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                        <p>${searchQuery ? 'No contacts match your search.' : 'No contacts yet. Add your first contact above!'}</p>
-                    </div>
-                `;
-                return;
-            }
-
-            contactsList.innerHTML = filtered.map(contact => `
-                <div class="contact-item" onclick="startEdit(${contact.id})">
-                    <div class="contact-info">
-                        <h3>${escapeHtml(contact.name)}</h3>
-                        <p>${escapeHtml(contact.notes) || 'No notes'}</p>
-                        <div class="contact-stages">
-                            ${contact.joinedCommunity ? '<span class="stage-badge joined">Joined</span>' : ''}
-                            ${contact.tookChallenge ? '<span class="stage-badge challenge">Challenge</span>' : ''}
-                            ${contact.submittedPaid ? '<span class="stage-badge submitted">90-Day</span>' : ''}
-                            ${contact.customer ? '<span class="stage-badge customer">Customer</span>' : ''}
-                        </div>
-                    </div>
-                    <div class="contact-actions">
-                        <button class="btn btn-edit" onclick="event.stopPropagation(); startEdit(${contact.id})">Edit</button>
-                        <button class="btn btn-danger" onclick="event.stopPropagation(); deleteContact(${contact.id})">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-    </script>
-</body>
-</html>
+            saveData();
