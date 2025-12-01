@@ -7,107 +7,801 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* [KEEP YOUR EXISTING CSS HERE - It was perfect] */
-        :root { --bg-deep: #0a0a0f; --bg-card: #12121a; --bg-elevated: #1a1a24; --border: #2a2a3a; --text-primary: #f0f0f5; --text-secondary: #8888a0; --text-muted: #555566; --accent-gold: #f0c060; --accent-gold-dim: #c49a40; --accent-cyan: #40d0d0; --accent-magenta: #d060c0; --accent-success: #40c080; --accent-danger: #e05050; --gradient-stage: linear-gradient(135deg, #f0c060 0%, #d060c0 50%, #40d0d0 100%); --shadow-glow: 0 0 60px rgba(240, 192, 96, 0.15); --radius-sm: 8px; --radius-md: 12px; --radius-lg: 20px; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'DM Sans', sans-serif; background: var(--bg-deep); color: var(--text-primary); min-height: 100vh; line-height: 1.6; overflow-x: hidden; }
-        body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 20% 20%, rgba(240, 192, 96, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(64, 208, 208, 0.06) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(208, 96, 192, 0.04) 0%, transparent 60%); pointer-events: none; z-index: -1; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 40px 24px; }
-        .header { text-align: center; margin-bottom: 48px; position: relative; }
-        .header::after { content: ''; position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 120px; height: 2px; background: var(--gradient-stage); border-radius: 2px; }
-        .logo { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; background: var(--gradient-stage); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; margin-bottom: 8px; }
-        .tagline { color: var(--text-secondary); font-size: 1rem; letter-spacing: 0.1em; text-transform: uppercase; }
-        .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 32px; }
-        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; text-align: center; transition: all 0.3s ease; }
-        .stat-card:hover { border-color: var(--accent-gold-dim); box-shadow: var(--shadow-glow); transform: translateY(-2px); }
-        .stat-value { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 700; color: var(--accent-gold); line-height: 1; }
-        .stat-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; }
-        .dashboard { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; margin-bottom: 32px; }
-        @media (max-width: 1024px) { .dashboard { grid-template-columns: 1fr; } }
-        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px; position: relative; overflow: hidden; }
-        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--gradient-stage); opacity: 0.5; }
-        .card-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
-        .card-title .icon { font-size: 1.2rem; }
-        .funnel-container { display: flex; flex-direction: column; gap: 12px; }
-        .funnel-stage { position: relative; display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: default; transition: all 0.3s ease; overflow: hidden; }
-        .funnel-stage::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: var(--progress, 0%); background: var(--stage-color); opacity: 0.15; transition: width 0.6s ease; }
-        .funnel-stage:hover { border-color: var(--stage-color); transform: translateX(4px); }
+        :root {
+            --bg-deep: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-elevated: #1a1a24;
+            --border: #2a2a3a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #555566;
+            --accent-gold: #f0c060;
+            --accent-gold-dim: #c49a40;
+            --accent-cyan: #40d0d0;
+            --accent-magenta: #d060c0;
+            --accent-success: #40c080;
+            --accent-danger: #e05050;
+            --gradient-stage: linear-gradient(135deg, #f0c060 0%, #d060c0 50%, #40d0d0 100%);
+            --shadow-glow: 0 0 60px rgba(240, 192, 96, 0.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(240, 192, 96, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(64, 208, 208, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(208, 96, 192, 0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 2px;
+            background: var(--gradient-stage);
+            border-radius: 2px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--gradient-stage);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 8px 32px rgba(240, 192, 96, 0.3);
+        }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .logo-text span {
+            background: var(--gradient-stage);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-gold-dim);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 8px;
+        }
+
+        /* Main Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient-stage);
+            opacity: 0.5;
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title .icon {
+            font-size: 1.2rem;
+        }
+
+        /* Funnel Visualization */
+        .funnel-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .funnel-stage {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: default;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .funnel-stage::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: var(--progress, 0%);
+            background: var(--stage-color);
+            opacity: 0.15;
+            transition: width 0.6s ease;
+        }
+
+        .funnel-stage:hover {
+            border-color: var(--stage-color);
+            transform: translateX(4px);
+        }
+
         .funnel-stage:nth-child(1) { --stage-color: var(--accent-gold); }
         .funnel-stage:nth-child(2) { --stage-color: #e09050; }
         .funnel-stage:nth-child(3) { --stage-color: var(--accent-magenta); }
         .funnel-stage:nth-child(4) { --stage-color: #8060d0; }
         .funnel-stage:nth-child(5) { --stage-color: var(--accent-cyan); }
-        .stage-indicator { width: 48px; height: 48px; border-radius: 50%; background: var(--stage-color); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--bg-deep); flex-shrink: 0; position: relative; z-index: 1; box-shadow: 0 0 20px color-mix(in srgb, var(--stage-color) 40%, transparent); }
-        .stage-info { flex: 1; position: relative; z-index: 1; }
-        .stage-label { font-weight: 600; font-size: 0.95rem; color: var(--text-primary); margin-bottom: 2px; }
-        .stage-meta { font-size: 0.8rem; color: var(--text-secondary); }
-        .stage-rate { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; color: var(--stage-color); position: relative; z-index: 1; }
-        .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .editing-badge { display: none; align-items: center; gap: 8px; padding: 6px 12px; background: var(--accent-gold); color: var(--bg-deep); border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-        .editing-badge.active { display: flex; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
-        .form-group input[type="text"], .form-group textarea { width: 100%; padding: 14px 16px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: inherit; font-size: 1rem; transition: all 0.2s ease; }
-        .form-group input[type="text"]:focus, .form-group textarea:focus { outline: none; border-color: var(--accent-gold); box-shadow: 0 0 0 3px rgba(240, 192, 96, 0.1); }
-        .form-group textarea { resize: vertical; min-height: 80px; }
-        .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
-        .checkbox-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s ease; }
-        .checkbox-item:hover { border-color: var(--text-muted); }
-        .checkbox-item.checked { border-color: var(--accent-gold-dim); background: rgba(240, 192, 96, 0.05); }
-        .checkbox-item input { display: none; }
-        .checkbox-custom { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; }
-        .checkbox-item.checked .checkbox-custom { background: var(--accent-gold); border-color: var(--accent-gold); }
-        .checkbox-custom svg { width: 12px; height: 12px; stroke: var(--bg-deep); stroke-width: 3; opacity: 0; transform: scale(0.5); transition: all 0.15s ease; }
-        .checkbox-item.checked .checkbox-custom svg { opacity: 1; transform: scale(1); }
-        .checkbox-label { font-size: 0.9rem; color: var(--text-primary); }
-        .checkbox-item.disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 24px; font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 600; border: none; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.05em; }
-        .btn-primary { background: var(--gradient-stage); color: var(--bg-deep); width: 100%; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(240, 192, 96, 0.3); }
-        .btn-secondary { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); }
-        .btn-secondary:hover { border-color: var(--text-muted); background: var(--bg-card); }
-        .btn-danger { background: transparent; color: var(--accent-danger); border: 1px solid var(--accent-danger); padding: 8px 12px; font-size: 0.75rem; }
-        .btn-danger:hover { background: var(--accent-danger); color: white; }
-        .btn-edit { background: transparent; color: var(--accent-cyan); border: 1px solid var(--accent-cyan); padding: 8px 12px; font-size: 0.75rem; }
-        .btn-edit:hover { background: var(--accent-cyan); color: var(--bg-deep); }
-        .form-actions { display: flex; gap: 12px; margin-top: 24px; }
-        .form-actions .btn-secondary { display: none; }
-        .form-actions.editing .btn-secondary { display: flex; }
-        .contacts-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
-        .contacts-count { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; }
-        .contacts-count span { color: var(--accent-gold); }
-        .contacts-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-        .contacts-actions .btn { padding: 10px 16px; font-size: 0.75rem; }
-        .search-box { position: relative; margin-bottom: 20px; }
-        .search-box input { width: 100%; padding: 14px 16px 14px 48px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 0.95rem; transition: all 0.2s ease; }
-        .search-box input:focus { outline: none; border-color: var(--accent-gold); }
-        .search-box svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: var(--text-muted); }
-        .contacts-list { max-height: 500px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-        .contacts-list::-webkit-scrollbar { width: 6px; }
-        .contact-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px; border-bottom: 1px solid var(--border); transition: all 0.2s ease; cursor: pointer; }
-        .contact-item:hover { background: var(--bg-elevated); }
-        .contact-info h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
-        .contact-info p { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px; }
-        .contact-stages { display: flex; gap: 6px; flex-wrap: wrap; }
-        .stage-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .stage-indicator {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--stage-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--bg-deep);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 20px color-mix(in srgb, var(--stage-color) 40%, transparent);
+        }
+
+        .stage-info {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stage-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .stage-meta {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .stage-rate {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--stage-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Form Styles */
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .editing-badge {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--accent-gold);
+            color: var(--bg-deep);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .editing-badge.active {
+            display: flex;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px rgba(240, 192, 96, 0.1);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Checkbox Group */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--text-muted);
+        }
+
+        .checkbox-item.checked {
+            border-color: var(--accent-gold-dim);
+            background: rgba(240, 192, 96, 0.05);
+        }
+
+        .checkbox-item input {
+            display: none;
+        }
+
+        .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .checkbox-item.checked .checkbox-custom {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+        }
+
+        .checkbox-custom svg {
+            width: 12px;
+            height: 12px;
+            stroke: var(--bg-deep);
+            stroke-width: 3;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.15s ease;
+        }
+
+        .checkbox-item.checked .checkbox-custom svg {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .checkbox-label {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .checkbox-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-primary {
+            background: var(--gradient-stage);
+            color: var(--bg-deep);
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(240, 192, 96, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+            background: var(--bg-card);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--accent-danger);
+            border: 1px solid var(--accent-danger);
+            padding: 8px 12px;
+            font-size: 0.75rem;
+        }
+
+        .btn-danger:hover {
+            background: var(--accent-danger);
+            color: white;
+        }
+
+        .btn-edit {
+            background: transparent;
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+            padding: 8px 12px;
+            font-size: 0.75rem;
+        }
+
+        .btn-edit:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-deep);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .form-actions .btn-secondary {
+            display: none;
+        }
+
+        .form-actions.editing .btn-secondary {
+            display: flex;
+        }
+
+        /* Contacts Section */
+        .contacts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .contacts-count {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .contacts-count span {
+            color: var(--accent-gold);
+        }
+
+        .contacts-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .contacts-actions .btn {
+            padding: 10px 16px;
+            font-size: 0.75rem;
+        }
+
+        /* Search */
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            stroke: var(--text-muted);
+        }
+
+        /* Contacts List */
+        .contacts-list {
+            max-height: 500px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
+        }
+
+        .contacts-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .contacts-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .contacts-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .contact-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+
+        .contact-item:hover {
+            background: var(--bg-elevated);
+        }
+
+        .contact-info h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .contact-info p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .contact-stages {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .stage-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
         .stage-badge.joined { background: rgba(224, 144, 80, 0.2); color: #e09050; }
         .stage-badge.challenge { background: rgba(208, 96, 192, 0.2); color: var(--accent-magenta); }
         .stage-badge.submitted { background: rgba(128, 96, 208, 0.2); color: #8060d0; }
         .stage-badge.customer { background: rgba(64, 208, 208, 0.2); color: var(--accent-cyan); }
-        .contact-actions { display: flex; gap: 8px; flex-shrink: 0; }
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+
+        .contact-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            stroke: var(--text-muted);
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            pointer-events: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { border-left: 3px solid var(--accent-success); }
+        .toast.error { border-left: 3px solid var(--accent-danger); }
+        .toast.info { border-left: 3px solid var(--accent-cyan); }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toast.success .toast-icon { stroke: var(--accent-success); }
+        .toast.error .toast-icon { stroke: var(--accent-danger); }
+        .toast.info .toast-icon { stroke: var(--accent-cyan); }
+
+        .toast-message {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100px); }
+        }
+
+        .file-input { display: none; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 24px 16px; }
+            .header { margin-bottom: 32px; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .card { padding: 20px; }
+            .funnel-stage { padding: 14px 16px; }
+            .stage-indicator { width: 40px; height: 40px; font-size: 1rem; }
+            .contacts-header { flex-direction: column; align-items: stretch; }
+            .contacts-actions { justify-content: stretch; }
+            .contacts-actions .btn { flex: 1; }
+            .contact-item { flex-direction: column; gap: 12px; }
+            .contact-actions { align-self: flex-start; }
+            .logo-container { flex-direction: column; gap: 12px; }
+            .logo-icon { width: 48px; height: 48px; font-size: 24px; }
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <header class="header">
-            <h1 class="logo">Speaker Gym</h1>
+            <div class="logo-container">
+                <div class="logo-icon">🎤</div>
+                <h1 class="logo-text">Speaker <span>Gym</span></h1>
+            </div>
             <p class="tagline">Funnel Tracker</p>
         </header>
 
+        <!-- Stats Bar -->
         <div class="stats-bar">
             <div class="stat-card">
                 <div class="stat-value" id="stat-total">0</div>
@@ -127,7 +821,9 @@
             </div>
         </div>
 
+        <!-- Main Dashboard -->
         <div class="dashboard">
+            <!-- Funnel Card -->
             <div class="card">
                 <h2 class="card-title">
                     <span class="icon">📊</span>
@@ -142,7 +838,7 @@
                         </div>
                         <div class="stage-rate">100%</div>
                     </div>
-                    <div class="funnel-stage" style="--progress: 0%" id="stage-joined">
+                    <div class="funnel-stage" style="--progress: 0%">
                         <div class="stage-indicator" id="count-joined">0</div>
                         <div class="stage-info">
                             <div class="stage-label">Joined Community</div>
@@ -150,7 +846,7 @@
                         </div>
                         <div class="stage-rate" id="percent-joined">0%</div>
                     </div>
-                    <div class="funnel-stage" style="--progress: 0%" id="stage-challenge">
+                    <div class="funnel-stage" style="--progress: 0%">
                         <div class="stage-indicator" id="count-challenge">0</div>
                         <div class="stage-info">
                             <div class="stage-label">7-Day Challenge</div>
@@ -158,7 +854,7 @@
                         </div>
                         <div class="stage-rate" id="percent-challenge">0%</div>
                     </div>
-                    <div class="funnel-stage" style="--progress: 0%" id="stage-paid">
+                    <div class="funnel-stage" style="--progress: 0%">
                         <div class="stage-indicator" id="count-paid">0</div>
                         <div class="stage-info">
                             <div class="stage-label">90-Day Submitted</div>
@@ -166,7 +862,7 @@
                         </div>
                         <div class="stage-rate" id="percent-paid">0%</div>
                     </div>
-                    <div class="funnel-stage" style="--progress: 0%" id="stage-customers">
+                    <div class="funnel-stage" style="--progress: 0%">
                         <div class="stage-indicator" id="count-customers">0</div>
                         <div class="stage-info">
                             <div class="stage-label">Customers</div>
@@ -177,6 +873,7 @@
                 </div>
             </div>
 
+            <!-- Form Card -->
             <div class="card">
                 <div class="form-header">
                     <h2 class="card-title">
@@ -184,6 +881,10 @@
                         <span id="formTitle">Add Contact</span>
                     </h2>
                     <div class="editing-badge" id="editingBadge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
                         Editing
                     </div>
                 </div>
@@ -205,35 +906,45 @@
                             <div class="checkbox-item checked disabled">
                                 <input type="checkbox" id="contacted" checked disabled>
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
                                 </div>
                                 <span class="checkbox-label">Contacted (default)</span>
                             </div>
                             <div class="checkbox-item" onclick="toggleCheckbox(this)">
                                 <input type="checkbox" id="joinedCommunity">
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
                                 </div>
                                 <span class="checkbox-label">Joined Community</span>
                             </div>
                             <div class="checkbox-item" onclick="toggleCheckbox(this)">
                                 <input type="checkbox" id="tookChallenge">
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
                                 </div>
                                 <span class="checkbox-label">Took 7-Day Challenge</span>
                             </div>
                             <div class="checkbox-item" onclick="toggleCheckbox(this)">
                                 <input type="checkbox" id="submittedPaid">
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
                                 </div>
                                 <span class="checkbox-label">Submitted for 90-Day Program</span>
                             </div>
                             <div class="checkbox-item" onclick="toggleCheckbox(this)">
                                 <input type="checkbox" id="customer">
                                 <div class="checkbox-custom">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
                                 </div>
                                 <span class="checkbox-label">Customer (Paid 90-Day)</span>
                             </div>
@@ -248,75 +959,516 @@
             </div>
         </div>
 
+        <!-- Contacts List Card -->
         <div class="card">
             <div class="contacts-header">
                 <h2 class="contacts-count">All Contacts (<span id="totalContacts">0</span>)</h2>
                 <div class="contacts-actions">
-                    <button type="button" class="btn btn-secondary" onclick="exportToExcel()">
+                    <button type="button" class="btn btn-secondary" id="exportBtn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                         Export Excel
                     </button>
+                    <button type="button" class="btn btn-secondary" id="importBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Import Excel
+                    </button>
+                    <input type="file" id="importFile" class="file-input" accept=".xlsx,.xls">
                 </div>
             </div>
-            
+
             <div class="search-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="renderContacts()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Search contacts...">
             </div>
 
             <div class="contacts-list" id="contactsList">
                 <div class="empty-state">
-                    <p>No contacts yet. Add your first lead!</p>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <p>No contacts yet. Add your first contact above!</p>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <script>
+        // Storage key for localStorage
+        const STORAGE_KEY = 'speakerGymContacts';
+
         // State
-        let contacts = JSON.parse(localStorage.getItem('speakerGymContacts')) || [];
-        let editingId = null;
+        let contacts = [];
+        let editingContactId = null;
+        let searchQuery = '';
+        let nextId = 1;
+
+        // DOM Elements
+        const contactForm = document.getElementById('contactForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const formActions = document.getElementById('formActions');
+        const formTitle = document.getElementById('formTitle');
+        const editingBadge = document.getElementById('editingBadge');
+        const searchInput = document.getElementById('searchInput');
+        const exportBtn = document.getElementById('exportBtn');
+        const importBtn = document.getElementById('importBtn');
+        const importFile = document.getElementById('importFile');
 
         // Initialize
-        renderContacts();
-        updateStats();
+        loadContacts();
 
-        // 1. Toggle Checkbox Visuals
-        function toggleCheckbox(element) {
-            if (element.classList.contains('disabled')) return;
-            element.classList.toggle('checked');
-            const input = element.querySelector('input');
-            input.checked = element.classList.contains('checked');
+        // Event Listeners
+        contactForm.addEventListener('submit', handleSubmit);
+        searchInput.addEventListener('input', function(e) {
+            searchQuery = e.target.value.toLowerCase();
+            renderContacts();
+        });
+        exportBtn.addEventListener('click', exportToExcel);
+        importBtn.addEventListener('click', function() { importFile.click(); });
+        importFile.addEventListener('change', importFromExcel);
+
+        // Toast Notification System
+        function showToast(message, type) {
+            type = type || 'info';
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            
+            var icons = {
+                success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+                error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+                info: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+            };
+
+            toast.innerHTML = icons[type] + '<span class="toast-message">' + message + '</span>';
+            container.appendChild(toast);
+
+            setTimeout(function() {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 3000);
         }
 
-        // 2. Handle Form Submit
-        document.getElementById('contactForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const notes = document.getElementById('notes').value;
-            const joinedCommunity = document.getElementById('joinedCommunity').checked;
-            const tookChallenge = document.getElementById('tookChallenge').checked;
-            const submittedPaid = document.getElementById('submittedPaid').checked;
-            const customer = document.getElementById('customer').checked;
-
-            if (editingId) {
-                // Edit existing
-                const index = contacts.findIndex(c => c.id === editingId);
-                if (index !== -1) {
-                    contacts[index] = { ...contacts[index], name, notes, joinedCommunity, tookChallenge, submittedPaid, customer };
-                }
-                resetForm();
+        // Checkbox Toggle
+        function toggleCheckbox(item) {
+            if (item.classList.contains('disabled')) return;
+            var checkbox = item.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            if (checkbox.checked) {
+                item.classList.add('checked');
             } else {
-                // Add new
-                const newContact = {
-                    id: Date.now(),
-                    date: new Date().toISOString(),
-                    name, notes, joinedCommunity, tookChallenge, submittedPaid, customer
-                };
-                contacts.push(newContact);
+                item.classList.remove('checked');
+            }
+        }
+
+        // Form Handling
+        function handleSubmit(e) {
+            e.preventDefault();
+
+            var name = document.getElementById('name').value.trim();
+            if (!name) {
+                showToast('Please enter a name', 'error');
+                return;
             }
 
-            saveData();
+            var contactData = {
+                name: name,
+                notes: document.getElementById('notes').value.trim(),
+                joinedCommunity: document.getElementById('joinedCommunity').checked,
+                tookChallenge: document.getElementById('tookChallenge').checked,
+                submittedPaid: document.getElementById('submittedPaid').checked,
+                customer: document.getElementById('customer').checked,
+                dateAdded: new Date().toISOString()
+            };
+
+            if (editingContactId !== null) {
+                var index = -1;
+                for (var i = 0; i < contacts.length; i++) {
+                    if (contacts[i].id === editingContactId) {
+                        index = i;
+                        break;
+                    }
+                }
+                if (index !== -1) {
+                    contactData.id = contacts[index].id;
+                    contactData.dateAdded = contacts[index].dateAdded;
+                    contacts[index] = contactData;
+                    showToast('Contact updated successfully!', 'success');
+                }
+            } else {
+                contactData.id = nextId++;
+                contacts.push(contactData);
+                showToast('Contact added successfully!', 'success');
+            }
+
+            saveContacts();
+            updateDisplay();
+            resetForm();
+        }
+
+        function resetForm() {
+            contactForm.reset();
+            editingContactId = null;
+            submitBtn.textContent = 'Add Contact';
+            formTitle.textContent = 'Add Contact';
+            editingBadge.classList.remove('active');
+            formActions.classList.remove('editing');
+            
+            var items = document.querySelectorAll('.checkbox-item');
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                if (!item.classList.contains('disabled')) {
+                    item.classList.remove('checked');
+                    item.querySelector('input').checked = false;
+                }
+            }
+        }
+
+        function startEdit(id) {
+            var contact = null;
+            for (var i = 0; i < contacts.length; i++) {
+                if (contacts[i].id === id) {
+                    contact = contacts[i];
+                    break;
+                }
+            }
+            if (!contact) return;
+
+            editingContactId = id;
+            document.getElementById('name').value = contact.name;
+            document.getElementById('notes').value = contact.notes || '';
+
+            var checkboxIds = ['joinedCommunity', 'tookChallenge', 'submittedPaid', 'customer'];
+            for (var i = 0; i < checkboxIds.length; i++) {
+                var cbId = checkboxIds[i];
+                var input = document.getElementById(cbId);
+                var checked = !!contact[cbId];
+                input.checked = checked;
+                if (checked) {
+                    input.closest('.checkbox-item').classList.add('checked');
+                } else {
+                    input.closest('.checkbox-item').classList.remove('checked');
+                }
+            }
+
+            submitBtn.textContent = 'Update Contact';
+            formTitle.textContent = 'Edit ' + contact.name;
+            editingBadge.classList.add('active');
+            formActions.classList.add('editing');
+            document.getElementById('name').focus();
+
+            if (window.innerWidth < 1024) {
+                var formCard = document.querySelector('.dashboard .card:nth-child(2)');
+                if (formCard) formCard.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function deleteContact(id) {
+            if (!confirm('Delete this contact?')) return;
+            var newContacts = [];
+            for (var i = 0; i < contacts.length; i++) {
+                if (contacts[i].id !== id) {
+                    newContacts.push(contacts[i]);
+                }
+            }
+            contacts = newContacts;
+            if (editingContactId === id) resetForm();
+            saveContacts();
+            updateDisplay();
+            showToast('Contact deleted', 'success');
+        }
+
+        // Storage Functions
+        function loadContacts() {
+            try {
+                var stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    contacts = JSON.parse(stored);
+                    var maxId = 0;
+                    for (var i = 0; i < contacts.length; i++) {
+                        if (contacts[i].id > maxId) maxId = contacts[i].id;
+                    }
+                    nextId = maxId + 1;
+                }
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+                contacts = [];
+            }
+            updateDisplay();
+        }
+
+        function saveContacts() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
+            } catch (error) {
+                console.error('Error saving contacts:', error);
+                showToast('Failed to save contacts', 'error');
+            }
+        }
+
+        // Excel Export using SheetJS
+        function exportToExcel() {
+            if (contacts.length === 0) {
+                showToast('No contacts to export', 'error');
+                return;
+            }
+
+            try {
+                // Prepare data for export
+                var exportData = [];
+                for (var i = 0; i < contacts.length; i++) {
+                    var c = contacts[i];
+                    exportData.push({
+                        'Name': c.name,
+                        'Notes': c.notes || '',
+                        'Joined Community': c.joinedCommunity ? 'Yes' : 'No',
+                        'Took 7-Day Challenge': c.tookChallenge ? 'Yes' : 'No',
+                        'Submitted for 90-Day': c.submittedPaid ? 'Yes' : 'No',
+                        'Customer (Paid)': c.customer ? 'Yes' : 'No',
+                        'Date Added': c.dateAdded ? new Date(c.dateAdded).toLocaleDateString() : ''
+                    });
+                }
+
+                // Create workbook and worksheet
+                var wb = XLSX.utils.book_new();
+                var ws = XLSX.utils.json_to_sheet(exportData);
+
+                // Set column widths
+                ws['!cols'] = [
+                    { wch: 25 },
+                    { wch: 40 },
+                    { wch: 18 },
+                    { wch: 22 },
+                    { wch: 22 },
+                    { wch: 18 },
+                    { wch: 15 }
+                ];
+
+                // Add worksheet to workbook
+                XLSX.utils.book_append_sheet(wb, ws, 'Contacts');
+
+                // Generate filename with date
+                var today = new Date();
+                var dateStr = today.getFullYear() + '-' + 
+                    String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(today.getDate()).padStart(2, '0');
+                var filename = 'speaker-gym-contacts-' + dateStr + '.xlsx';
+
+                // Save the file
+                XLSX.writeFile(wb, filename);
+                showToast('Contacts exported successfully!', 'success');
+            } catch (error) {
+                console.error('Export error:', error);
+                showToast('Failed to export contacts', 'error');
+            }
+        }
+
+        // Excel Import using SheetJS
+        function importFromExcel(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var data = new Uint8Array(e.target.result);
+                    var workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Get first sheet
+                    var sheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[sheetName];
+                    
+                    // Convert to JSON
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (jsonData.length === 0) {
+                        showToast('No data found in the file', 'error');
+                        return;
+                    }
+
+                    // Map imported data to contact format
+                    var importedCount = 0;
+                    for (var i = 0; i < jsonData.length; i++) {
+                        var row = jsonData[i];
+                        var name = row['Name'] || row['name'] || '';
+                        if (!name.trim()) continue;
+
+                        var contact = {
+                            id: nextId++,
+                            name: name.trim(),
+                            notes: row['Notes'] || row['notes'] || '',
+                            joinedCommunity: parseBoolean(row['Joined Community'] || row['joinedCommunity']),
+                            tookChallenge: parseBoolean(row['Took 7-Day Challenge'] || row['tookChallenge']),
+                            submittedPaid: parseBoolean(row['Submitted for 90-Day'] || row['submittedPaid']),
+                            customer: parseBoolean(row['Customer (Paid)'] || row['customer']),
+                            dateAdded: new Date().toISOString()
+                        };
+
+                        contacts.push(contact);
+                        importedCount++;
+                    }
+
+                    saveContacts();
+                    updateDisplay();
+                    showToast('Imported ' + importedCount + ' contacts!', 'success');
+                } catch (error) {
+                    console.error('Import error:', error);
+                    showToast('Failed to import file. Please check the format.', 'error');
+                }
+            };
+
+            reader.onerror = function() {
+                showToast('Failed to read file', 'error');
+            };
+
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+
+        function parseBoolean(value) {
+            if (typeof value === 'boolean') return value;
+            if (typeof value === 'string') {
+                var lower = value.toLowerCase();
+                return lower === 'yes' || lower === 'true' || value === '1';
+            }
+            return !!value;
+        }
+
+        // Display Functions
+        function updateDisplay() {
+            updateStats();
+            updateFunnel();
+            renderContacts();
+        }
+
+        function updateStats() {
+            var total = contacts.length;
+            var joined = 0, challenge = 0, customers = 0;
+            for (var i = 0; i < contacts.length; i++) {
+                if (contacts[i].joinedCommunity) joined++;
+                if (contacts[i].tookChallenge) challenge++;
+                if (contacts[i].customer) customers++;
+            }
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-community').textContent = total ? Math.round((joined / total) * 100) + '%' : '0%';
+            document.getElementById('stat-challenge').textContent = joined ? Math.round((challenge / joined) * 100) + '%' : '0%';
+            document.getElementById('stat-conversion').textContent = total ? Math.round((customers / total) * 100) + '%' : '0%';
+        }
+
+        function updateFunnel() {
+            var stats = {
+                contacted: contacts.length,
+                joined: 0,
+                challenge: 0,
+                paid: 0,
+                customers: 0
+            };
+            for (var i = 0; i < contacts.length; i++) {
+                if (contacts[i].joinedCommunity) stats.joined++;
+                if (contacts[i].tookChallenge) stats.challenge++;
+                if (contacts[i].submittedPaid) stats.paid++;
+                if (contacts[i].customer) stats.customers++;
+            }
+
+            function toPercent(num, denom) {
+                return denom ? Math.round((num / denom) * 100) : 0;
+            }
+
+            document.getElementById('count-contacted').textContent = stats.contacted;
+            document.getElementById('count-joined').textContent = stats.joined;
+            document.getElementById('count-challenge').textContent = stats.challenge;
+            document.getElementById('count-paid').textContent = stats.paid;
+            document.getElementById('count-customers').textContent = stats.customers;
+
+            var percentages = [
+                100,
+                toPercent(stats.joined, stats.contacted),
+                toPercent(stats.challenge, stats.joined),
+                toPercent(stats.paid, stats.challenge),
+                toPercent(stats.customers, stats.paid)
+            ];
+
+            document.getElementById('percent-joined').textContent = percentages[1] + '%';
+            document.getElementById('percent-challenge').textContent = percentages[2] + '%';
+            document.getElementById('percent-paid').textContent = percentages[3] + '%';
+            document.getElementById('percent-customers').textContent = percentages[4] + '%';
+
+            var stages = document.querySelectorAll('.funnel-stage');
+            for (var i = 0; i < stages.length; i++) {
+                stages[i].style.setProperty('--progress', percentages[i] + '%');
+            }
+        }
+
+        function renderContacts() {
+            var contactsList = document.getElementById('contactsList');
+            document.getElementById('totalContacts').textContent = contacts.length;
+
+            var filtered = [];
+            for (var i = 0; i < contacts.length; i++) {
+                var c = contacts[i];
+                if (searchQuery) {
+                    var nameMatch = c.name.toLowerCase().indexOf(searchQuery) !== -1;
+                    var notesMatch = c.notes && c.notes.toLowerCase().indexOf(searchQuery) !== -1;
+                    if (nameMatch || notesMatch) {
+                        filtered.push(c);
+                    }
+                } else {
+                    filtered.push(c);
+                }
+            }
+
+            if (filtered.length === 0) {
+                var emptyMsg = searchQuery ? 'No contacts match your search.' : 'No contacts yet. Add your first contact above!';
+                contactsList.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p>' + emptyMsg + '</p></div>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < filtered.length; i++) {
+                var contact = filtered[i];
+                var badges = '';
+                if (contact.joinedCommunity) badges += '<span class="stage-badge joined">Joined</span>';
+                if (contact.tookChallenge) badges += '<span class="stage-badge challenge">Challenge</span>';
+                if (contact.submittedPaid) badges += '<span class="stage-badge submitted">90-Day</span>';
+                if (contact.customer) badges += '<span class="stage-badge customer">Customer</span>';
+
+                html += '<div class="contact-item" onclick="startEdit(' + contact.id + ')">' +
+                    '<div class="contact-info">' +
+                    '<h3>' + escapeHtml(contact.name) + '</h3>' +
+                    '<p>' + (escapeHtml(contact.notes) || 'No notes') + '</p>' +
+                    '<div class="contact-stages">' + badges + '</div>' +
+                    '</div>' +
+                    '<div class="contact-actions">' +
+                    '<button class="btn btn-edit" onclick="event.stopPropagation(); startEdit(' + contact.id + ')">Edit</button>' +
+                    '<button class="btn btn-danger" onclick="event.stopPropagation(); deleteContact(' + contact.id + ')">Delete</button>' +
+                    '</div></div>';
+            }
+            contactsList.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
