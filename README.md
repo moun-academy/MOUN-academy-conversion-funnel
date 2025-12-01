@@ -1,116 +1,25 @@
 # Speaker Gym Funnel Tracker
 
-This repository contains a lightweight command-line application for tracking
-outreach to your Speaker's Gym community. The tool stores contacts locally in a
-JSON file and helps you keep counts of how many people:
+This repository now contains a fully front-end tracker for your Speaker's Gym
+community. Open `index.html` in your browser to manage contacts and track how
+many people:
 
 - Were contacted
 - Joined the community
 - Took the 7-day challenge
 - Submitted their contact information for the paid 90-day program
 
+All data is stored locally in your browser using `localStorage`, so you can use
+the app offline and without any backend.
+
 ## Getting started
 
-1. **Install Python 3.9+** (already available in most environments).
-2. Run commands from the repository root:
+1. Download or clone the repository.
+2. Open `index.html` in your browser. No server or dependencies are required.
 
-   ```bash
-   python app.py --help
-   ```
+## Importing/exporting contacts
 
-The app will create `data/funnel.json` automatically on first run.
-
-### Running the web API for persistent contacts
-
-If you want the browser UI (`index.html`) to persist contacts across browser sessions
-and devices, run the bundled API server:
-
-```bash
-python app.py serve --port 8000
-```
-
-Then open `index.html` from this repo or host it anywhere you like. The page will
-talk to `http://<server-ip>:8000/api/contacts` to load and save contacts in
-`data/web_contacts.json` on the server.
-
-> The API uses [openpyxl](https://openpyxl.readthedocs.io/) for Excel import/export.
-> Install it with `pip install openpyxl` in the same environment where you run
-> `app.py`.
-
-#### Importing/exporting contacts in Excel
-
-- **Export**: Click **Export to Excel** in the web UI or GET `/api/contacts/export`
-  to download `contacts.xlsx`.
-- **Import**: Click **Import from Excel** in the web UI and select an `.xlsx` file,
-  or POST an Excel file to `/api/contacts/import` to replace the stored contacts.
-  The sheet must include these headers in the first row: `id`, `name`, `notes`,
-  `joinedCommunity`, `tookChallenge`, `submittedPaid`, `customer`, `dateAdded`.
-
-### Downloading the app to your laptop
-
-If you want to run the tracker locally, either:
-
-- Click the green **Code** button on GitHub and choose **Download ZIP**, then unzip the folder anywhere on your machine, or
-- Clone it via Git: `git clone https://github.com/<your-org>/MOUN-academy-conversion-funnel.git`
-
-After downloading, you can open `index.html` directly in your browser for the local UI, or run the CLI with `python app.py` from the project folder.
-
-## Commands
-
-### Add a contact
-
-```bash
-python app.py add "Alex Lee" --notes "Met at networking event"
-```
-
-### Update a contact's progress
-
-```bash
-# Mark someone as joining, finishing the challenge, and submitting 90-day details
-python app.py update "Alex Lee" --joined --challenge --contact-submitted
-
-# Remove a flag or replace notes
-python app.py update "Alex Lee" --no-challenge --notes "Rescheduled challenge for next week"
-```
-
-### List contacts (optionally filtered)
-
-```bash
-python app.py list
-python app.py list --filter joined
-python app.py list --filter challenge
-python app.py list --filter contact_submitted
-```
-
-### View summary counts
-
-```bash
-python app.py summary
-```
-
-### Reset the data store
-
-```bash
-python app.py reset
-```
-
-## Data format
-
-Contacts are saved in `data/funnel.json` with the following schema:
-
-```json
-{
-  "contacts": [
-    {
-      "name": "Alex Lee",
-      "contacted_at": "2024-05-23T18:05:00Z",
-      "joined": true,
-      "challenge": true,
-      "contact_submitted": false,
-      "notes": "Met at networking event"
-    }
-  ]
-}
-```
-
-You can safely edit this file manually if you need to make bulk changes.
+- **Export**: Click **Export** to download a `speaker-gym-contacts.json`
+  file containing your saved contacts.
+- **Import**: Click **Import** and select a `.json` file previously
+  exported from the app to restore your data.

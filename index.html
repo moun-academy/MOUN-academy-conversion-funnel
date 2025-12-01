@@ -1025,7 +1025,7 @@
                         </svg>
                         Import
                     </button>
-                    <input type="file" id="importFile" class="file-input" accept=".xlsx,.xls">
+                    <input type="file" id="importFile" class="file-input" accept=".json">
                 </div>
             </div>
 
@@ -1055,11 +1055,8 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // API Configuration
-        const API_BASE = window.location.origin.startsWith('file') ? 'http://localhost:8000' : window.location.origin;
-        const CONTACTS_API = `${API_BASE}/api/contacts`;
-        const CONTACTS_EXPORT_API = `${API_BASE}/api/contacts/export`;
-        const CONTACTS_IMPORT_API = `${API_BASE}/api/contacts/import`;
+        // Local storage configuration
+        const STORAGE_KEY = 'speakerGymContacts';
 
         // State
         let contacts = [];
@@ -1125,7 +1122,7 @@
         }
 
         // Form Handling
-        async function handleSubmit(e) {
+        function handleSubmit(e) {
             e.preventDefault();
 
             const payload = {
@@ -1134,7 +1131,10 @@
                 joinedCommunity: document.getElementById('joinedCommunity').checked,
                 tookChallenge: document.getElementById('tookChallenge').checked,
                 submittedPaid: document.getElementById('submittedPaid').checked,
-                customer: document.getElementById('customer').checked
+                customer: document.getElementById('customer').checked,
+                dateAdded: editingContactId
+                    ? (contacts.find(c => c.id === editingContactId)?.dateAdded || new Date().toISOString().split('T')[0])
+                    : new Date().toISOString().split('T')[0]
             };
 
             if (!payload.name) {
@@ -1147,17 +1147,17 @@
 
             try {
                 if (editingContactId) {
-                    await updateContact(editingContactId, payload);
+                    updateContact(editingContactId, payload);
                     showToast('Contact updated successfully!', 'success');
                 } else {
-                    await createContact(payload);
+                    createContact(payload);
                     showToast('Contact added successfully!', 'success');
                 }
-                await loadContacts();
+                loadContacts();
                 resetForm();
             } catch (error) {
                 console.error(error);
-                showToast('Failed to save contact. Check if API server is running.', 'error');
+                showToast('Failed to save contact. Please try again.', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = editingContactId ? 'Update Contact' : 'Add Contact';
@@ -1215,12 +1215,11 @@
             }
         }
 
-        // API Functions
-        async function loadContacts() {
+        // Contact management (local-only)
+        function loadContacts() {
             try {
-                const response = await fetch(CONTACTS_API);
-                if (!response.ok) throw new Error('Failed to fetch');
-                contacts = await response.json();
+                const saved = localStorage.getItem(STORAGE_KEY);
+                contacts = saved ? JSON.parse(saved) : [];
             } catch (error) {
                 console.error('Unable to load contacts:', error);
                 contacts = [];
@@ -1228,89 +1227,82 @@
             updateDisplay();
         }
 
-        async function createContact(payload) {
-            const response = await fetch(CONTACTS_API, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!response.ok) throw new Error('Failed to create');
-            return response.json();
+        function persistContacts() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(contacts));
         }
 
-        async function updateContact(id, payload) {
-            const response = await fetch(`${CONTACTS_API}/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!response.ok) throw new Error('Failed to update');
-            return response.json();
+        function createContact(payload) {
+            const newContact = {
+                id: Date.now(),
+                ...payload
+            };
+            contacts.push(newContact);
+            persistContacts();
+            return newContact;
         }
 
-        async function deleteContact(id) {
+        function updateContact(id, payload) {
+            contacts = contacts.map(contact => contact.id === id ? { ...contact, ...payload } : contact);
+            persistContacts();
+            return contacts.find(contact => contact.id === id);
+        }
+
+        function deleteContact(id) {
             if (!confirm('Delete this contact?')) return;
 
-            try {
-                const response = await fetch(`${CONTACTS_API}/${id}`, { method: 'DELETE' });
-                if (!response.ok && response.status !== 204) throw new Error('Failed to delete');
-
-                if (editingContactId === id) resetForm();
-                await loadContacts();
-                showToast('Contact deleted', 'success');
-            } catch (error) {
-                console.error(error);
-                showToast('Failed to delete contact', 'error');
-            }
+            contacts = contacts.filter(contact => contact.id !== id);
+            persistContacts();
+            if (editingContactId === id) resetForm();
+            updateDisplay();
+            showToast('Contact deleted', 'success');
         }
 
-        async function exportContacts() {
-            try {
-                const response = await fetch(CONTACTS_EXPORT_API);
-                if (!response.ok) throw new Error('Failed to export');
-
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'speaker-gym-contacts.xlsx';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
-                showToast('Contacts exported!', 'success');
-            } catch (error) {
-                console.error(error);
-                showToast('Failed to export contacts', 'error');
-            }
+        function exportContacts() {
+            const blob = new Blob([JSON.stringify(contacts, null, 2)], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'speaker-gym-contacts.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            showToast('Contacts exported!', 'success');
         }
 
-        async function handleImport(event) {
+        function handleImport(event) {
             const [file] = event.target.files;
             if (!file) return;
 
-            try {
-                const response = await fetch(CONTACTS_IMPORT_API, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    },
-                    body: file
-                });
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result || '[]');
+                    if (!Array.isArray(parsed)) throw new Error('Invalid file format');
 
-                if (!response.ok) {
-                    const error = await response.json().catch(() => ({}));
-                    throw new Error(error.error || 'Failed to import');
+                    contacts = parsed.map((contact, index) => ({
+                        id: contact.id || Date.now() + index,
+                        name: contact.name || 'Unnamed contact',
+                        notes: contact.notes || '',
+                        joinedCommunity: Boolean(contact.joinedCommunity),
+                        tookChallenge: Boolean(contact.tookChallenge),
+                        submittedPaid: Boolean(contact.submittedPaid),
+                        customer: Boolean(contact.customer),
+                        dateAdded: contact.dateAdded || new Date().toISOString().split('T')[0]
+                    }));
+
+                    persistContacts();
+                    updateDisplay();
+                    showToast('Contacts imported successfully!', 'success');
+                } catch (error) {
+                    console.error(error);
+                    showToast('Failed to import contacts', 'error');
+                } finally {
+                    event.target.value = '';
                 }
+            };
 
-                await loadContacts();
-                showToast('Contacts imported successfully!', 'success');
-            } catch (error) {
-                console.error(error);
-                showToast(error.message || 'Failed to import contacts', 'error');
-            } finally {
-                event.target.value = '';
-            }
+            reader.readAsText(file);
         }
 
         // Display Functions
